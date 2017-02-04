@@ -13,7 +13,7 @@ Requirements
 - `tmux` (Tested versions: **2.3**)
 - `zsh` (Tested versions: **5.2**, **5.3**)
 - 256 colors support
-- *nix (Tested OS: macOS Sierra **10.12**)
+- \*nix (Tested OS: macOS Sierra **10.12**)
 
 Usage
 -----
