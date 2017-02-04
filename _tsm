@@ -1,0 +1,4 @@
+#compdef tsm
+#autoload
+
+_values "commands" "list" "show" "save" "restore" "resume" "quit" && ret=0
