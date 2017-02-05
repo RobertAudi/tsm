@@ -6,16 +6,14 @@ Installation
 
 For a "stable" version:
 
-- Put `dist/tsm` in a directory in your `$PATH`
+- Put `dist/bin/tsm` in a directory in your `$PATH`
+- Put `dist/functions/_tsm` in a directory in your `$FPATH` (optional)
 
 For the latest version:
 
 - Run `./build.zsh`
 - Put `build/tsm` in a directory in your `$PATH`
-
-Optional steps:
-
-- Put `_tsm` in a directory in your `$FPATH`
+- Put `share/zsh/_tsm` in a directory in your `$FPATH` (optional)
 
 Requirements
 ------------
