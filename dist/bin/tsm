@@ -287,7 +287,7 @@ function __tsm::backup::session() {
   session_dump="$(__tsm::dump)" || return $status
 
   local filename="$(__tsm::filename).$(__tsm::random).txt"
-  [[ -n "$1" ]] && filename="${1}.${filename}"
+  [[ -n "$session_file" ]] && filename="${session_file:A:t:r}.${filename}"
 
   builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename"
 }
