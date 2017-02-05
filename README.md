@@ -4,6 +4,20 @@ Tmux Session Manager
 Installation
 ------------
 
+### zplug
+
+```
+zplug "RobertAudi/tsm"
+```
+
+### As a plugin
+
+```shell
+$ source "tsm.plugin.zsh"
+```
+
+### Manually
+
 For a "stable" version:
 
 - Put `dist/bin/tsm` in a directory in your `$PATH`
