@@ -4,8 +4,18 @@ Tmux Session Manager
 Installation
 ------------
 
-- Put `tsm` to a directory in your `$PATH`
-- Put `_tsm` to a directory in your `$FPATH` (optional)
+For a "stable" version:
+
+- Put `dist/tsm` in a directory in your `$PATH`
+
+For the latest version:
+
+- Run `./build.zsh`
+- Put `build/tsm` in a directory in your `$PATH`
+
+Optional steps:
+
+- Put `_tsm` in a directory in your `$FPATH`
 
 Requirements
 ------------
