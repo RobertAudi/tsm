@@ -74,7 +74,7 @@ TODO
 
 - [ ] Man pages
 - [ ] Configuration file
-- [ ] ASCII Art logo
+- [x] ASCII Art logo
 
 Credits
 -------
