@@ -7,7 +7,7 @@ function __tsm::main() {
     __tsm::"$cmd" "${@:2}"
   else
     __tsm::help
-    [[ -n "$cmd" ]] && return 127 || return 1
+    return 1
   fi
 }
 
