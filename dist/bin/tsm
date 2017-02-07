@@ -49,22 +49,24 @@ command mkdir -p -m 700 \
 
 local -A colors
 colors=(
-  info    "$(tput setaf 32)"
-  warn    "$(tput setaf 221)"
-  error   "$(tput setaf 196)"
-  success "$(tput setaf 34)"
-  white   "$(tput setaf 7)"
-  red     "$(tput setaf 1)"
-  green   "$(tput setaf 2)"
-  blue    "$(tput setaf 4)"
-  dimmed  "$(tput setaf 245)"
-  bold    "$(tput bold)"
-  reset   "$(tput sgr0)"
+  info      "$(tput setaf 32)"
+  warn      "$(tput setaf 221)"
+  error     "$(tput setaf 196)"
+  fatal     "$(tput setaf 7; tput setab 196)"
+  success   "$(tput setaf 34)"
+  white     "$(tput setaf 7)"
+  red       "$(tput setaf 1)"
+  green     "$(tput setaf 2)"
+  blue      "$(tput setaf 4)"
+  dimmed    "$(tput setaf 245)"
+  bold      "$(tput bold)"
+  underline "$(tput smul)"
+  reset     "$(tput sgr0)"
 )
 readonly -l colors
 
 local -a __tsm_commands
-__tsm_commands=("list" "show" "save" "restore" "resume" "quit" "help")
+__tsm_commands=("list" "show" "save" "rename" "restore" "resume" "quit" "help")
 readonly -l __tsm_commands
 
 # -------------------------------------------------------------------------- }}}
@@ -87,12 +89,38 @@ function __tsm::and-pipe() {
 
 # Ask Yes/No question
 function __tsm::ask() {
-  local question answer
-  question="$(sed -e 's/\\\??[[:space:]]*$//' <<< "$1")"
+  local query query_type="prompt"
+  local -A opts
+  zparseopts -D -A opts -- c p
+  if (( ${+opts[c]} )); then
+    query_type="confirmation"
+  elif (( ${+opts[p]} )); then
+    query_type="prompt"
+  fi
+
+  query="$(__tsm::trim::trailing "$@")"
+  case "$query_type" in
+    confirmation) __tsm::ask::confirmation "$query" ;;
+    prompt) __tsm::ask::prompt "$query" ;;
+    *)
+      __tsm::log fatal "Invalid query type: $(__tsm::colorize bold,white "${query_type}")"
+      return 1
+      ;;
+  esac
+}
+
+function __tsm::ask::prompt() {
+  local prompt="$@"
+  : ${prompt:=>}
+  builtin read -e "?${prompt} "
+}
+
+function __tsm::ask::confirmation() {
+  local question="${@%\?}"
   : ${question:=Are you sure}
   builtin read -qs "?${question} [y/n] "
   # ???: This should probably be removed...
-  answer=$status ; builtin print ; return $answer
+  local answer=$status ; builtin print ; return $answer
 }
 
 # |Colors| {{{
@@ -157,6 +185,7 @@ function __tsm::log() {
     info)    prefix="---"  ;;
     warn)    prefix="/!\\" ;;
     error)   prefix="!!!"  ;;
+    fatal)   prefix="!!!"  ;;
     success) prefix="\\o/" ;;
     *)       prefix="-->"
       level="*" message="$@" level_color="dimmed"
@@ -215,6 +244,35 @@ function __tsm::session_exists() {
 # a better way of doing it.
 function __tsm::tmux_running() {
   command tmux info &> /dev/null
+}
+
+function __tsm::trim() {
+  local -A opts
+  zparseopts -D -A opts -- l t b
+  if (( ${+opts[b]} )) || ! (( ${#opts} )); then
+    __tsm::trim::both "$@"
+  else
+    local string="$@"
+    if (( ${+opts[l]} )); then
+      string="$(__tsm::trim::leading "$@")"
+    fi
+    if (( ${+opts[t]} )); then
+      string="$(__tsm::trim::trailing "$@")"
+    fi
+    builtin printf "%s" "$string"
+  fi
+}
+
+function __tsm::trim::leading() {
+  builtin printf "%s" "${@#"${@%%[![:space:]]*}"}"
+}
+
+function __tsm::trim::trailing() {
+  builtin printf "%s" "${@%"${@##*[![:space:]]}"}"
+}
+
+function __tsm::trim::both() {
+  __tsm::trim::trailing "$(__tsm::trim::leading "$@")"
 }
 
 # Add a new tmux window
@@ -324,6 +382,7 @@ Commands:
   list        List saved sessions
   show        Show details about a session
   save        Save the current session
+  rename      Rename a saved session
   restore     Restore a saved session
   resume      Restore and attach a saved session
   quit        Quit tmux
@@ -350,6 +409,13 @@ Help-Message
 function __tsm::help::save() {
   cat <<Help-Message
 Usage: tsm save [name]
+Help-Message
+  return 64
+}
+
+function __tsm::help::rename() {
+  cat <<Help-Message
+Usage: tsm rename <name> [new-name]
 Help-Message
   return 64
 }
@@ -394,7 +460,7 @@ Help-Message
 function __tsm::list() {
   local -a session_files
   session_files=("${TSM_SESSIONS_DIR}"/*.txt(.NOmf:gu+r:))
-  builtin print -- "Number of sessions: $(__tsm::colorize blue "${#session_files}")\n"
+  builtin print -- "$(__tsm::colorize underline "Saved sessions:")\n"
 
   # Get the length of the longest filename
   # Source: Chapter 5, paragraph 1, of the "A Users guide to the Z-Shell"
@@ -420,6 +486,8 @@ function __tsm::list() {
 
     windows_count=0 sessions_count=0 session_registry=()
   done
+
+  builtin print -- "\nNumber of saved sessions: $(__tsm::colorize blue "${#session_files}")"
 }
 
 # Create a backup of the current tmux session
@@ -432,6 +500,61 @@ function __tsm::quit() {
     __tsm::log error "Failed to quit the tmux session"
     return 1
   fi
+}
+
+# Save the current session. If a name is not specified
+# as the first argument, one will be generated automatically.
+# If a session with the same name exists, the user will be
+# asked to confirm before override the existing one.
+function __tsm::rename() {
+  local session_name="$1"
+  if [[ -z "$session_name" ]]; then
+    __tsm::log error "Missing session name"
+    __tsm::help::rename
+    return 1
+  fi
+
+  local session_file
+  session_file="$TSM_SESSIONS_DIR/$session_name"
+  [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
+
+  if [[ ! -f "$session_file" ]]; then
+    __tsm::log error "Session not found: ${session_name}"
+    builtin print
+    __tsm::list
+    return 1
+  fi
+
+  local new_session_name="$(__tsm::trim ${2:-$(__tsm::ask -p "New name:")})"
+  if [[ -z "$new_session_name" ]]; then
+    __tsm::log error "Missing session name"
+    __tsm::help::rename
+    return 1
+  elif [[ "$new_session_name" == "$session_name" ]]; then
+    __tsm::log error "The new session name $(__tsm::colorize bold,white "$new_session_name") is the same as the current one $(__tsm::colorize bold,white "$session_name")"
+    __tsm::help::rename
+    return 1
+  fi
+
+  local new_session_file
+  new_session_file="$TSM_SESSIONS_DIR/$new_session_name"
+  [[ "${new_session_file:e}" == "txt" ]] || new_session_file+=".txt"
+
+  if [[ -f "$new_session_file" ]]; then
+    __tsm::log warn "A session with the same name already exist: $(__tsm::colorize bold,white "${new_session_name:r}")"
+    if __tsm::ask::confirmation "Do you want to override the existing session?"; then
+      __tsm::backup::session "$new_session_file"
+    else
+      __tsm::log error "Failed to rename session: $(__tsm::colorize bold,white "$session_name")"
+      if [[ ! -r "$session_file" || ! -w "$session_file" ]]; then
+        __tsm::log error "Inaccessible session file: $(__tsm::colorize bold,white "$session_file")"
+      fi
+      return 1
+    fi
+  fi
+
+  __tsm::log info "Renaming session: $(__tsm::colorize bold,white "$session_name") -> $(__tsm::colorize bold,white "$new_session_name")"
+  command mv -f "$session_file" "$new_session_file" >/dev/null
 }
 
 # |Restore| {{{
@@ -449,6 +572,13 @@ function __tsm::restore::restorable_file() {
   if [[ -n "$1" ]]; then
     session_file="$TSM_SESSIONS_DIR/$1"
     [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
+
+    if [[ ! -f "$session_file" ]]; then
+      __tsm::log error "Session not found: ${session_name}"
+      builtin print
+      __tsm::list
+      return 1
+    fi
 
     if [[ -s "$session_file" && -r "$session_file" ]]; then
       builtin print -ln -- "$session_file" ; return
@@ -517,7 +647,7 @@ function __tsm::save() {
 
   if [[ -f "$session_file" ]]; then
     __tsm::log warn "A session with the same name already exist: $(__tsm::colorize bold,white "${filename:r}")"
-    if __tsm::ask "Do you want to override the existing session?"; then
+    if __tsm::ask::confirmation "Do you want to override the existing session?"; then
       __tsm::log info "Overriding existing session: $(__tsm::colorize bold,white "${filename:r}")"
       __tsm::backup::session "$session_file"
     else
@@ -547,6 +677,8 @@ function __tsm::show() {
 
   if [[ ! -f "$session_file" ]]; then
     __tsm::log error "Session not found: $session_input_name"
+    builtin print
+    __tsm::list
     return 1
   elif [[ ! -r "$session_file" ]]; then
     __tsm::log error "Inaccessible session: $session_input_name"
@@ -604,7 +736,7 @@ function __tsm::main() {
     __tsm::"$cmd" "${@:2}"
   else
     __tsm::help
-    [[ -n "$cmd" ]] && return 127 || return 1
+    return 1
   fi
 }
 
