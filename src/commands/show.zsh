@@ -11,6 +11,8 @@ function __tsm::show() {
 
   if [[ ! -f "$session_file" ]]; then
     __tsm::log error "Session not found: $session_input_name"
+    builtin print
+    __tsm::list
     return 1
   elif [[ ! -r "$session_file" ]]; then
     __tsm::log error "Inaccessible session: $session_input_name"

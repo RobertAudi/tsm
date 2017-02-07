@@ -14,6 +14,13 @@ function __tsm::restore::restorable_file() {
     session_file="$TSM_SESSIONS_DIR/$1"
     [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
 
+    if [[ ! -f "$session_file" ]]; then
+      __tsm::log error "Session not found: ${session_name}"
+      builtin print
+      __tsm::list
+      return 1
+    fi
+
     if [[ -s "$session_file" && -r "$session_file" ]]; then
       builtin print -ln -- "$session_file" ; return
     fi
