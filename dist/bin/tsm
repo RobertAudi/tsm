@@ -64,7 +64,7 @@ colors=(
 readonly -l colors
 
 local -a __tsm_commands
-__tsm_commands=("list" "show" "save" "restore" "resume" "quit")
+__tsm_commands=("list" "show" "save" "restore" "resume" "quit" "help")
 readonly -l __tsm_commands
 
 # -------------------------------------------------------------------------- }}}
@@ -311,6 +311,86 @@ function __tsm::backup() {
 
 # -------------------------------------------------------------------------- }}}
 
+function __tsm::help() {
+  local cmd="$1"
+  [[ "$cmd" == "tsm" ]] && { __tsm::tsm ; return $status }
+  if (( ${+__tsm_commands[(r)$cmd]} )); then
+    __tsm::help::"$@"
+  else
+    cat <<Help-Message
+Usage: tsm <command>
+
+Commands:
+  list        List saved sessions
+  show        Show details about a session
+  save        Save the current session
+  restore     Restore a saved session
+  resume      Restore and attach a saved session
+  quit        Quit tmux
+  help        Show usage information
+Help-Message
+  fi
+  return 64
+}
+
+function __tsm::help::list() {
+  cat <<Help-Message
+Usage: tsm list
+Help-Message
+  return 64
+}
+
+function __tsm::help::show() {
+  cat <<Help-Message
+Usage: tsm show <name>
+Help-Message
+  return 64
+}
+
+function __tsm::help::save() {
+  cat <<Help-Message
+Usage: tsm save [name]
+Help-Message
+  return 64
+}
+
+function __tsm::help::restore() {
+  cat <<Help-Message
+Usage: tsm restore <name>
+Help-Message
+  return 64
+}
+
+function __tsm::help::resume() {
+  cat <<Help-Message
+Usage: tsm resume <name>
+Help-Message
+  return 64
+}
+
+function __tsm::help::quit() {
+  cat <<Help-Message
+Usage: tsm quit
+Help-Message
+  return 64
+}
+
+function __tsm::help::help() {
+  cat <<Help-Message
+Usage: tsm help [command]
+
+Commands:
+  list        List saved sessions
+  show        Show details about a session
+  save        Save the current session
+  restore     Restore a saved session
+  resume      Restore and attach a saved session
+  quit        Quit tmux
+  help        Show usage information
+Help-Message
+  return 64
+}
+
 function __tsm::list() {
   local -a session_files
   session_files=("${TSM_SESSIONS_DIR}"/*.txt(.NOmf:gu+r:))
@@ -523,8 +603,8 @@ function __tsm::main() {
   if (( ${+__tsm_commands[(r)$cmd]} )); then
     __tsm::"$cmd" "${@:2}"
   else
-    builtin print -- "valid commands: ${(j:, :)__tsm_commands}" >&2
-    return 1
+    __tsm::help
+    [[ -n "$cmd" ]] && return 127 || return 1
   fi
 }
 
