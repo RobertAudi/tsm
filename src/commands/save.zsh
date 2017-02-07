@@ -11,7 +11,7 @@ function __tsm::save() {
 
   if [[ -f "$session_file" ]]; then
     __tsm::log warn "A session with the same name already exist: $(__tsm::colorize bold,white "${filename:r}")"
-    if __tsm::ask "Do you want to override the existing session?"; then
+    if __tsm::ask::confirmation "Do you want to override the existing session?"; then
       __tsm::log info "Overriding existing session: $(__tsm::colorize bold,white "${filename:r}")"
       __tsm::backup::session "$session_file"
     else
