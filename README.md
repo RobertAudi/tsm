@@ -68,7 +68,7 @@ Commands
 - [ ] `edit`
 - [ ] `remove`
 - [ ] `duplicate`
-- [ ] `rename`
+- [x] `rename`
 
 TODO
 ----

@@ -11,6 +11,7 @@ Commands:
   list        List saved sessions
   show        Show details about a session
   save        Save the current session
+  rename      Rename a saved session
   restore     Restore a saved session
   resume      Restore and attach a saved session
   quit        Quit tmux
@@ -37,6 +38,13 @@ Help-Message
 function __tsm::help::save() {
   cat <<Help-Message
 Usage: tsm save [name]
+Help-Message
+  return 64
+}
+
+function __tsm::help::rename() {
+  cat <<Help-Message
+Usage: tsm rename <name> [new-name]
 Help-Message
   return 64
 }
