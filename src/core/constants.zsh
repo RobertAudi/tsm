@@ -18,7 +18,7 @@ colors=(
 readonly -l colors
 
 local -a __tsm_commands
-__tsm_commands=("list" "show" "save" "restore" "resume" "quit")
+__tsm_commands=("list" "show" "save" "restore" "resume" "quit" "help")
 readonly -l __tsm_commands
 
 # -------------------------------------------------------------------------- }}}

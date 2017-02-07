@@ -64,7 +64,7 @@ Commands
 - [x] `quit`
 - [ ] `backup`
 - [ ] `cleanup`
-- [ ] `help`
+- [x] `help`
 - [ ] `edit`
 - [ ] `remove`
 - [ ] `duplicate`
