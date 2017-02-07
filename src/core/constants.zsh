@@ -6,6 +6,7 @@ colors=(
   info    "$(tput setaf 32)"
   warn    "$(tput setaf 221)"
   error   "$(tput setaf 196)"
+  fatal   "$(tput setaf 7; tput setab 196)"
   success "$(tput setaf 34)"
   white   "$(tput setaf 7)"
   red     "$(tput setaf 1)"

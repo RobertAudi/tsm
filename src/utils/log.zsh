@@ -12,6 +12,7 @@ function __tsm::log() {
     info)    prefix="---"  ;;
     warn)    prefix="/!\\" ;;
     error)   prefix="!!!"  ;;
+    fatal)   prefix="!!!"  ;;
     success) prefix="\\o/" ;;
     *)       prefix="-->"
       level="*" message="$@" level_color="dimmed"
