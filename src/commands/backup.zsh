@@ -17,19 +17,19 @@ function __tsm::backup::clean() {
 }
 
 function __tsm::backup::list() {
+  integer -l count
+  local -a files
   local -A opts
   zparseopts -D -A opts -- a
 
-  integer -l end_index
-  if (( ${+opts[-a]} )); then
-    end_index=-1
+  files=("${TSM_BACKUPS_DIR}"/*.txt(.NOmf:u+rw:))
+  if (( ${+opts[-a]} )) || (( ${#files} <= $TSM_BACKUPS_COUNT )); then
+    count=-1
   else
-    end_index=$(( $TSM_BACKUPS_COUNT + 1 ))
+    count=$TSM_BACKUPS_COUNT
   fi
 
-  local -a files
-  files=("${TSM_BACKUPS_DIR}"/*.txt(.Nomf:u+rw:[1,$end_index]:t))
-  builtin print -l -- "${(Oa)files[@]}"
+  builtin print -l -- ${files[1,$count]}
 }
 
 function __tsm::backup::session() {
