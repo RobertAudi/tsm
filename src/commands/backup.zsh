@@ -6,8 +6,14 @@
 # To be safe, the files will be removed only if they are
 # readable and writable by the current user.
 function __tsm::backup::clean() {
-  integer -l start_index=$(( ${1:-TSM_BACKUPS_COUNT} + 1 ))
-  command rm ${TSM_BACKUPS_DIR}/*.txt(.Nomf:u+rw:[$start_index, -1])
+  integer -l count
+  local -a files
+  files=("${TSM_BACKUPS_DIR}"/*.txt(.NOmf:u+rw:))
+  count=${1:-TSM_BACKUPS_COUNT}
+  if (( ${#files} > $count )); then
+    count=$(( ${#files} - $count ))
+    (( $count > 0 )) && command rm ${files[1, $count]}
+  fi
 }
 
 function __tsm::backup::list() {
