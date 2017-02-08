@@ -41,7 +41,7 @@ Usage
 -----
 
 ```shell
-$ tsm <COMMAND> [args...]
+$ tsm <command> [args...]
 ```
 
 Configuration
