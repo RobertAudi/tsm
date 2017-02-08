@@ -45,7 +45,8 @@ function __tsm::backup::session() {
   local filename="$(__tsm::filename).$(__tsm::random).txt"
   [[ -n "$session_file" ]] && filename="${session_file:A:t:r}.${filename}"
 
-  builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename"
+  builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
+    && __tsm::backup::clean
 }
 
 function __tsm::backup() {
@@ -55,7 +56,8 @@ function __tsm::backup() {
   local filename="$(__tsm::filename).$(__tsm::random).txt"
   [[ -n "$1" ]] && filename="${1}.${filename}"
 
-  builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename"
+  builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
+    && __tsm::backup::clean
 }
 
 # -------------------------------------------------------------------------- }}}
