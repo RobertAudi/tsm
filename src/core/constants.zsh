@@ -19,8 +19,17 @@ colors=(
 )
 readonly -l colors
 
-local -a __tsm_commands
-__tsm_commands=("list" "show" "save" "rename" "restore" "resume" "quit" "help")
+local -A __tsm_commands
+__tsm_commands=(
+  list        "List saved sessions"
+  show        "Show details about a session"
+  save        "Save the current session"
+  rename      "Rename a saved session"
+  restore     "Restore a saved session"
+  resume      "Restore and attach a saved session"
+  quit        "Quit tmux"
+  help        "Show usage information"
+)
 readonly -l __tsm_commands
 
 # -------------------------------------------------------------------------- }}}

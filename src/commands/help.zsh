@@ -1,21 +1,14 @@
 function __tsm::commands::help() {
   local cmd="$1"
   [[ "$cmd" == "tsm" ]] && { __tsm::commands::tsm ; return $status }
-  if (( ${+__tsm_commands[(r)$cmd]} )); then
+  if [[ -n "$cmd" ]] && (( ${+__tsm_commands[(k)$cmd]} )); then
     __tsm::commands::help::"$@"
   else
     cat <<Help-Message
 Usage: tsm <command>
 
 Commands:
-  list        List saved sessions
-  show        Show details about a session
-  save        Save the current session
-  rename      Rename a saved session
-  restore     Restore a saved session
-  resume      Restore and attach a saved session
-  quit        Quit tmux
-  help        Show usage information
+$(builtin printf "  %-13s %s\n" "${(kv)__tsm_commands[@]}")
 Help-Message
   fi
   return 64
@@ -75,14 +68,7 @@ function __tsm::commands::help::help() {
 Usage: tsm help [command]
 
 Commands:
-  list        List saved sessions
-  show        Show details about a session
-  save        Save the current session
-  rename      Rename a saved session
-  restore     Restore a saved session
-  resume      Restore and attach a saved session
-  quit        Quit tmux
-  help        Show usage information
+$(builtin printf "  %-13s %s\n" "${(kv)__tsm_commands[@]}")
 Help-Message
   return 64
 }
