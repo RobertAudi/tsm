@@ -1,7 +1,3 @@
-# Save the current session. If a name is not specified
-# as the first argument, one will be generated automatically.
-# If a session with the same name exists, the user will be
-# asked to confirm before override the existing one.
 function __tsm::commands::rename() {
   local session_name="$1"
   if [[ -z "$session_name" ]]; then
