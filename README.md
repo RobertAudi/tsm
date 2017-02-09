@@ -81,7 +81,7 @@ Credits
 -------
 
 - [`tmux-session`][tmux-session-mislav] by [Mislav Marohnić][gh-mislav] ([@mislav][gh-mislav]) was used as a starting point for this project.
-- Lots of inspiration from [zplug][gh-zplug]
+- Lots of inspiration from [zplug][gh-zplug].
 
 [tmux-session-mislav]: https://github.com/mislav/dotfiles/blob/62ca947b2cc39453a9f06d601dc00f85708995d9/bin/tmux-session
 [gh-mislav]: https://github.com/mislav
