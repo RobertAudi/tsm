@@ -77,7 +77,7 @@ readonly -l __tsm_commands
 # If it doesn't, return its exit code.
 # (i.e.: Its actual exit code, not just 1)
 #
-function __tsm::and-pipe() {
+function __tsm::utils::and_pipe() {
   if [[ -p /dev/stdin ]]; then
     local out=$(</dev/stdin)
     local res=${pipestatus[1]}
@@ -88,7 +88,7 @@ function __tsm::and-pipe() {
 }
 
 # Ask Yes/No question
-function __tsm::ask() {
+function __tsm::utils::ask() {
   local query query_type="prompt"
   local -A opts
   zparseopts -D -A opts -- c p
@@ -98,24 +98,24 @@ function __tsm::ask() {
     query_type="prompt"
   fi
 
-  query="$(__tsm::trim::trailing "$@")"
+  query="$(__tsm::utils::trim::trailing "$@")"
   case "$query_type" in
-    confirmation) __tsm::ask::confirmation "$query" ;;
-    prompt) __tsm::ask::prompt "$query" ;;
+    confirmation) __tsm::utils::ask::confirmation "$query" ;;
+    prompt) __tsm::utils::ask::prompt "$query" ;;
     *)
-      __tsm::log fatal "Invalid query type: $(__tsm::colorize bold,white "${query_type}")"
+      __tsm::utils::log fatal "Invalid query type: $(__tsm::utils::colorize bold,white "${query_type}")"
       return 1
       ;;
   esac
 }
 
-function __tsm::ask::prompt() {
+function __tsm::utils::ask::prompt() {
   local prompt="$@"
   : ${prompt:=>}
   builtin read -e "?${prompt} "
 }
 
-function __tsm::ask::confirmation() {
+function __tsm::utils::ask::confirmation() {
   local question="${@%\?}"
   : ${question:=Are you sure}
   builtin read -qs "?${question} [y/n] "
@@ -126,7 +126,7 @@ function __tsm::ask::confirmation() {
 # |Colors| {{{
 # ------------------------------------------------------------------------------
 
-function __tsm::color() {
+function __tsm::utils::color() {
   local color="$1" message="${@:2}"
   if (( ${+colors[$color]} )); then
     builtin print -n -- "${colors[$color]}$message"
@@ -136,15 +136,15 @@ function __tsm::color() {
   fi
 }
 
-function __tsm::colorize() {
-  for c ("${(s:,:)1}") __tsm::color "$c"
+function __tsm::utils::colorize() {
+  for c ("${(s:,:)1}") __tsm::utils::color "$c"
   builtin print -n -- "${@:2}${colors[reset]}"
 }
 
 # -------------------------------------------------------------------------- }}}
 
 # Generate a formatted timestamp including milliseconds
-function __tsm::datetime() {
+function __tsm::utils::datetime() {
   # NOTE: Padding with leading 0s might mess with the
   # ordering at the millisecond level. If that's a prolem
   # then it's definitely not mine. Don't be a PITA.
@@ -153,20 +153,22 @@ function __tsm::datetime() {
 
 # This function will return width/height parameters
 # that will be passed to the `tmux new-session` command
-function __tsm::dimensions_parameters() {
-  command stty size 2>/dev/null | __tsm::and-pipe \
+function __tsm::utils::dimensions_parameters() {
+  command stty size 2>/dev/null | __tsm::utils::and_pipe \
     command awk '{ printf "-x%d -y%d", $2, $1 }' 2>/dev/null
 }
 
+
 # Generate a random filename
-function __tsm::filename() {
-  builtin print -- "${1:-__tsm__}-$(__tsm::datetime)"
+function __tsm::utils::filename() {
+  builtin print -- "${1:-__tsm__}-$(__tsm::utils::datetime)"
 }
+
 
 # Check if tmux is running AND active
 # (ie: we are inside a tmux session)
-function __tsm::inside_tmux() {
-  { __tsm::tmux_running && [[ -n "$TMUX" ]] } || return 1
+function __tsm::utils::inside_tmux() {
+  { __tsm::utils::tmux_running && [[ -n "$TMUX" ]] } || return 1
   local -a tmux_info ; tmux_info=("${(s:,:)TMUX}")
   [[ -S "${tmux_info[1]}" ]] && builtin kill -s 0 "${tmux_info[2]}" &>/dev/null
 }
@@ -175,7 +177,7 @@ function __tsm::inside_tmux() {
 # Messages are printed to STDERR instead of STDOUT
 # so that logging can be silenced without hiding output
 # that could be relevent (eg: output from other commands).
-function __tsm::log() {
+function __tsm::utils::log() {
   local prefix
   local level="${(L)1}"
   local level_color="$level"
@@ -193,14 +195,14 @@ function __tsm::log() {
   esac
 
   integer -l left_padding=$(( 7 - ${#level} ))
-  builtin printf "%s$(__tsm::colorize $level "%*s")%-2s" "[" ${#level} "${(U)level}" "]" >&2
-  builtin printf "$(__tsm::colorize blue "%-4s")" "${prefix}" >&2
+  builtin printf "%s$(__tsm::utils::colorize $level "%*s")%-2s" "[" ${#level} "${(U)level}" "]" >&2
+  builtin printf "$(__tsm::utils::colorize blue "%-4s")" "${prefix}" >&2
   builtin printf "%s\n" "$message" >&2
 }
 
 # Generate n (default: 1) random strings of c (default: 8) alphanumeric characters. Example:
 # => n5E8smo0
-function __tsm::random() {
+function __tsm::utils::random() {
   local -A opts
   zparseopts -D -A opts -- c: n:
 
@@ -226,7 +228,7 @@ function __tsm::random() {
 # This is essentially the equivalent of <hr>
 # The character used for the ruler can be specified
 # as the first argument.
-function __tsm::separator() {
+function __tsm::utils::separator() {
   local width="$(tput cols)"
   local sep
   [[ -n "$1" ]] && sep="$1" || sep=$'\u2501'
@@ -234,7 +236,7 @@ function __tsm::separator() {
 }
 
 # Check if a tmux session exists.
-function __tsm::session_exists() {
+function __tsm::utils::session_exists() {
   command tmux has-session -t "$1" 2>/dev/null
 }
 
@@ -242,42 +244,43 @@ function __tsm::session_exists() {
 # I am not a fan of the approach used
 # but it will have to do until I find
 # a better way of doing it.
-function __tsm::tmux_running() {
+function __tsm::utils::tmux_running() {
   command tmux info &> /dev/null
 }
 
-function __tsm::trim() {
+
+function __tsm::utils::trim() {
   local -A opts
   zparseopts -D -A opts -- l t b
   if (( ${+opts[b]} )) || ! (( ${#opts} )); then
-    __tsm::trim::both "$@"
+    __tsm::utils::trim::both "$@"
   else
     local string="$@"
     if (( ${+opts[l]} )); then
-      string="$(__tsm::trim::leading "$@")"
+      string="$(__tsm::utils::trim::leading "$@")"
     fi
     if (( ${+opts[t]} )); then
-      string="$(__tsm::trim::trailing "$@")"
+      string="$(__tsm::utils::trim::trailing "$@")"
     fi
     builtin printf "%s" "$string"
   fi
 }
 
-function __tsm::trim::leading() {
+function __tsm::utils::trim::leading() {
   builtin printf "%s" "${@#"${@%%[![:space:]]*}"}"
 }
 
-function __tsm::trim::trailing() {
+function __tsm::utils::trim::trailing() {
   builtin printf "%s" "${@%"${@##*[![:space:]]}"}"
 }
 
-function __tsm::trim::both() {
-  __tsm::trim::trailing "$(__tsm::trim::leading "$@")"
+function __tsm::utils::trim::both() {
+  __tsm::utils::trim::trailing "$(__tsm::utils::trim::leading "$@")"
 }
 
 # Add a new tmux window
-# Usage: __tsm::add_window <session_name> <window_name> <window_working_directory>
-function __tsm::add_window() {
+# Usage: __tsm::helpers::add_window <session_name> <window_name> <window_working_directory>
+function __tsm::helpers::add_window() {
   local session_name="$1" window_name="$2" working_directory="$3"
   command tmux new-window -d -t "$session_name:" -n "$window_name" -c "$working_directory"
 }
@@ -289,7 +292,7 @@ function __tsm::add_window() {
 # - Window working directory path
 #
 # Caveat: Window panes are ignored.
-function __tsm::dump() {
+function __tsm::helpers::dump() {
   local d=$'\t'
   # FIXME: Fail if tmux is not running
   # TODO: Find a way to dump all panes including enough info to be able to restore them
@@ -301,17 +304,18 @@ function __tsm::dump() {
 # directory of new windows will default to "$HOME".
 # Without the dummy window, the default working directory
 # of new windows would be the one of the first window created.
-function __tsm::new_session() {
+function __tsm::helpers::new_session() {
   local session_name="$1" window_name="$2" window_working_directory="$3"
-  local dimensions="${4:-$(__tsm::dimensions_parameters)}"
+  local dimensions="${4:-$(__tsm::utils::dimensions_parameters)}"
   local session_working_directory dummy_window
   session_working_directory="$HOME"
-  dummy_window="__dummy-window-${EPOCHREALTIME/./}-$(__tsm::random)__"
+  dummy_window="__dummy-window-${EPOCHREALTIME/./}-$(__tsm::utils::random)__"
 
   command tmux new-session -d -s "$session_name" -n "$dummy_window" -c "$HOME" $=dimensions
-  __tsm::add_window "$session_name" "$window_name" "$window_working_directory"
+  __tsm::helpers::add_window "$session_name" "$window_name" "$window_working_directory"
   command tmux kill-window -t "$dummy_window"
 }
+
 
 # |Backup| {{{
 # ------------------------------------------------------------------------------
@@ -320,7 +324,7 @@ function __tsm::new_session() {
 # n is $1 or $TSM_BACKUPS_COUNT
 # To be safe, the files will be removed only if they are
 # readable and writable by the current user.
-function __tsm::backup::clean() {
+function __tsm::commands::backup::clean() {
   integer -l count
   local -a files
   files=("${TSM_BACKUPS_DIR}"/*.txt(.NOmf:u+rw:))
@@ -331,7 +335,7 @@ function __tsm::backup::clean() {
   fi
 }
 
-function __tsm::backup::list() {
+function __tsm::commands::backup::list() {
   integer -l count
   local -a files
   local -A opts
@@ -347,41 +351,41 @@ function __tsm::backup::list() {
   builtin print -l -- ${files[1,$count]}
 }
 
-function __tsm::backup::session() {
+function __tsm::commands::backup::session() {
   local session_file="$1"
   if [[ ! -f "$session_file" ]]; then
-    __tsm::log error "Session file not found: '${session_file}'"
+    __tsm::utils::log error "Session file not found: '${session_file}'"
     return 1
   fi
 
   local session_dump
-  session_dump="$(__tsm::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump)" || return $status
 
-  local filename="$(__tsm::filename).$(__tsm::random).txt"
+  local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
   [[ -n "$session_file" ]] && filename="${session_file:A:t:r}.${filename}"
 
   builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
-    && __tsm::backup::clean
+    && __tsm::commands::backup::clean
 }
 
-function __tsm::backup() {
+function __tsm::commands::backup() {
   local session_dump
-  session_dump="$(__tsm::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump)" || return $status
 
-  local filename="$(__tsm::filename).$(__tsm::random).txt"
+  local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
   [[ -n "$1" ]] && filename="${1}.${filename}"
 
   builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
-    && __tsm::backup::clean
+    && __tsm::commands::backup::clean
 }
 
 # -------------------------------------------------------------------------- }}}
 
-function __tsm::help() {
+function __tsm::commands::help() {
   local cmd="$1"
-  [[ "$cmd" == "tsm" ]] && { __tsm::tsm ; return $status }
+  [[ "$cmd" == "tsm" ]] && { __tsm::commands::tsm ; return $status }
   if (( ${+__tsm_commands[(r)$cmd]} )); then
-    __tsm::help::"$@"
+    __tsm::commands::help::"$@"
   else
     cat <<Help-Message
 Usage: tsm <command>
@@ -400,56 +404,56 @@ Help-Message
   return 64
 }
 
-function __tsm::help::list() {
+function __tsm::commands::help::list() {
   cat <<Help-Message
 Usage: tsm list
 Help-Message
   return 64
 }
 
-function __tsm::help::show() {
+function __tsm::commands::help::show() {
   cat <<Help-Message
 Usage: tsm show <name>
 Help-Message
   return 64
 }
 
-function __tsm::help::save() {
+function __tsm::commands::help::save() {
   cat <<Help-Message
 Usage: tsm save [name]
 Help-Message
   return 64
 }
 
-function __tsm::help::rename() {
+function __tsm::commands::help::rename() {
   cat <<Help-Message
 Usage: tsm rename <name> [new-name]
 Help-Message
   return 64
 }
 
-function __tsm::help::restore() {
+function __tsm::commands::help::restore() {
   cat <<Help-Message
 Usage: tsm restore <name>
 Help-Message
   return 64
 }
 
-function __tsm::help::resume() {
+function __tsm::commands::help::resume() {
   cat <<Help-Message
 Usage: tsm resume <name>
 Help-Message
   return 64
 }
 
-function __tsm::help::quit() {
+function __tsm::commands::help::quit() {
   cat <<Help-Message
 Usage: tsm quit
 Help-Message
   return 64
 }
 
-function __tsm::help::help() {
+function __tsm::commands::help::help() {
   cat <<Help-Message
 Usage: tsm help [command]
 
@@ -466,10 +470,10 @@ Help-Message
   return 64
 }
 
-function __tsm::list() {
+function __tsm::commands::list() {
   local -a session_files
   session_files=("${TSM_SESSIONS_DIR}"/*.txt(.NOmf:gu+r:))
-  builtin print -- "$(__tsm::colorize underline "Saved sessions:")\n"
+  builtin print -- "$(__tsm::utils::colorize underline "Saved sessions:")\n"
 
   # Get the length of the longest filename
   # Source: Chapter 5, paragraph 1, of the "A Users guide to the Z-Shell"
@@ -489,24 +493,24 @@ function __tsm::list() {
       fi
     done < "$f"
 
-    builtin printf "$(__tsm::colorize bold,white "%-*s")" $padding "${f:t:r}"
-    builtin printf "($(__tsm::colorize blue "%-2.0d") sessions and $(__tsm::colorize blue "%3.0d") windows)" "$sessions_count" "$windows_count"
-    builtin print -- ": $(__tsm::colorize dimmed "$f")"
+    builtin printf "$(__tsm::utils::colorize bold,white "%-*s")" $padding "${f:t:r}"
+    builtin printf "($(__tsm::utils::colorize blue "%-2.0d") sessions and $(__tsm::utils::colorize blue "%3.0d") windows)" "$sessions_count" "$windows_count"
+    builtin print -- ": $(__tsm::utils::colorize dimmed "$f")"
 
     windows_count=0 sessions_count=0 session_registry=()
   done
 
-  builtin print -- "\nNumber of saved sessions: $(__tsm::colorize blue "${#session_files}")"
+  builtin print -- "\nNumber of saved sessions: $(__tsm::utils::colorize blue "${#session_files}")"
 }
 
 # Create a backup of the current tmux session
 # and then kill the tmux server
-function __tsm::quit() {
-  __tsm::backup &>/dev/null
+function __tsm::commands::quit() {
+  __tsm::commands::backup &>/dev/null
   if command tmux kill-server &>/dev/null; then
-    __tsm::log success "tmux session ended"
+    __tsm::utils::log success "tmux session ended"
   else
-    __tsm::log error "Failed to quit the tmux session"
+    __tsm::utils::log error "Failed to quit the tmux session"
     return 1
   fi
 }
@@ -515,11 +519,11 @@ function __tsm::quit() {
 # as the first argument, one will be generated automatically.
 # If a session with the same name exists, the user will be
 # asked to confirm before override the existing one.
-function __tsm::rename() {
+function __tsm::commands::rename() {
   local session_name="$1"
   if [[ -z "$session_name" ]]; then
-    __tsm::log error "Missing session name"
-    __tsm::help::rename
+    __tsm::utils::log error "Missing session name"
+    __tsm::commands::help::rename
     return 1
   fi
 
@@ -528,20 +532,20 @@ function __tsm::rename() {
   [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
 
   if [[ ! -f "$session_file" ]]; then
-    __tsm::log error "Session not found: ${session_name}"
+    __tsm::utils::log error "Session not found: ${session_name}"
     builtin print
-    __tsm::list
+    __tsm::commands::list
     return 1
   fi
 
-  local new_session_name="$(__tsm::trim ${2:-$(__tsm::ask -p "New name:")})"
+  local new_session_name="$(__tsm::utils::trim ${2:-$(__tsm::utils::ask -p "New name:")})"
   if [[ -z "$new_session_name" ]]; then
-    __tsm::log error "Missing session name"
-    __tsm::help::rename
+    __tsm::utils::log error "Missing session name"
+    __tsm::commands::help::rename
     return 1
   elif [[ "$new_session_name" == "$session_name" ]]; then
-    __tsm::log error "The new session name $(__tsm::colorize bold,white "$new_session_name") is the same as the current one $(__tsm::colorize bold,white "$session_name")"
-    __tsm::help::rename
+    __tsm::utils::log error "The new session name $(__tsm::utils::colorize bold,white "$new_session_name") is the same as the current one $(__tsm::utils::colorize bold,white "$session_name")"
+    __tsm::commands::help::rename
     return 1
   fi
 
@@ -550,19 +554,19 @@ function __tsm::rename() {
   [[ "${new_session_file:e}" == "txt" ]] || new_session_file+=".txt"
 
   if [[ -f "$new_session_file" ]]; then
-    __tsm::log warn "A session with the same name already exist: $(__tsm::colorize bold,white "${new_session_name:r}")"
-    if __tsm::ask::confirmation "Do you want to override the existing session?"; then
-      __tsm::backup::session "$new_session_file"
+    __tsm::utils::log warn "A session with the same name already exist: $(__tsm::utils::colorize bold,white "${new_session_name:r}")"
+    if __tsm::utils::ask::confirmation "Do you want to override the existing session?"; then
+      __tsm::commands::backup::session "$new_session_file"
     else
-      __tsm::log error "Failed to rename session: $(__tsm::colorize bold,white "$session_name")"
+      __tsm::utils::log error "Failed to rename session: $(__tsm::utils::colorize bold,white "$session_name")"
       if [[ ! -r "$session_file" || ! -w "$session_file" ]]; then
-        __tsm::log error "Inaccessible session file: $(__tsm::colorize bold,white "$session_file")"
+        __tsm::utils::log error "Inaccessible session file: $(__tsm::utils::colorize bold,white "$session_file")"
       fi
       return 1
     fi
   fi
 
-  __tsm::log info "Renaming session: $(__tsm::colorize bold,white "$session_name") -> $(__tsm::colorize bold,white "$new_session_name")"
+  __tsm::utils::log info "Renaming session: $(__tsm::utils::colorize bold,white "$session_name") -> $(__tsm::utils::colorize bold,white "$new_session_name")"
   command mv -f "$session_file" "$new_session_file" >/dev/null
 }
 
@@ -576,16 +580,16 @@ function __tsm::rename() {
 # A restorable session file must have the following characteristics:
 #   - A size greater than zero
 #   - Readable by the current process
-function __tsm::restore::restorable_file() {
+function __tsm::commands::restore::restorable_file() {
   local session_file
   if [[ -n "$1" ]]; then
     session_file="$TSM_SESSIONS_DIR/$1"
     [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
 
     if [[ ! -f "$session_file" ]]; then
-      __tsm::log error "Session not found: ${session_name}"
+      __tsm::utils::log error "Session not found: ${session_name}"
       builtin print
-      __tsm::list
+      __tsm::commands::list
       return 1
     fi
 
@@ -595,7 +599,7 @@ function __tsm::restore::restorable_file() {
   fi
 
   local -a backup_files
-  backup_files=($(__tsm::backup::list))
+  backup_files=($(__tsm::commands::backup::list))
   session_file="${backup_files[-1]}"
 
   if [[ -s "$session_file" && -r "$session_file" ]]; then
@@ -607,76 +611,76 @@ function __tsm::restore::restorable_file() {
     builtin print -ln -- "$session_file" ; return
   fi
 
-  __tsm::log error "No session found"
+  __tsm::utils::log error "No session found"
   return 1
 }
 
-function __tsm::restore() {
+function __tsm::commands::restore() {
   integer -l sessions_count windows_count
   local session_file dimensions
-  session_file="$(__tsm::restore::restorable_file "$1")" || return $status
+  session_file="$(__tsm::commands::restore::restorable_file "$1")" || return $status
 
   command tmux start-server
 
-  dimensions="$(__tsm::dimensions_parameters)"
+  dimensions="$(__tsm::utils::dimensions_parameters)"
 
   while IFS=$'\t' read session_name window_name dir; do
     if [[ -d "$dir" && "$window_name" != "log" && "$window_name" != "man" ]]; then
-      if __tsm::session_exists "$session_name"; then
-        __tsm::add_window "$session_name" "$window_name" "$dir"
+      if __tsm::utils::session_exists "$session_name"; then
+        __tsm::helpers::add_window "$session_name" "$window_name" "$dir"
       else
-        __tsm::new_session "$session_name" "$window_name" "$dir" "$dimensions"
+        __tsm::helpers::new_session "$session_name" "$window_name" "$dir" "$dimensions"
         sessions_count+=1
       fi
       windows_count+=1
     fi
   done < "$session_file"
 
-  builtin print -- "Restored  $(__tsm::colorize blue "$sessions_count") sessions and $(__tsm::colorize blue "$windows_count") windows"
+  builtin print -- "Restored  $(__tsm::utils::colorize blue "$sessions_count") sessions and $(__tsm::utils::colorize blue "$windows_count") windows"
 }
 
 # -------------------------------------------------------------------------- }}}
 
 # Restore a session and attach to one
 # TODO: Specify which tmux session to attach to
-function __tsm::resume() {
-  __tsm::restore "$@" && { __tsm::inside_tmux || command tmux attach }
+function __tsm::commands::resume() {
+  __tsm::commands::restore "$@" && { __tsm::utils::inside_tmux || command tmux attach }
 }
 
 # Save the current session. If a name is not specified
 # as the first argument, one will be generated automatically.
 # If a session with the same name exists, the user will be
 # asked to confirm before override the existing one.
-function __tsm::save() {
+function __tsm::commands::save() {
   local session_dump
-  session_dump="$(__tsm::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump)" || return $status
 
-  local filename="${1:-$(__tsm::filename)}.txt"
+  local filename="${1:-$(__tsm::utils::filename)}.txt"
   local session_file="${TSM_SESSIONS_DIR}/$filename"
 
   if [[ -f "$session_file" ]]; then
-    __tsm::log warn "A session with the same name already exist: $(__tsm::colorize bold,white "${filename:r}")"
-    if __tsm::ask::confirmation "Do you want to override the existing session?"; then
-      __tsm::log info "Overriding existing session: $(__tsm::colorize bold,white "${filename:r}")"
-      __tsm::backup::session "$session_file"
+    __tsm::utils::log warn "A session with the same name already exist: $(__tsm::utils::colorize bold,white "${filename:r}")"
+    if __tsm::utils::ask::confirmation "Do you want to override the existing session?"; then
+      __tsm::utils::log info "Overriding existing session: $(__tsm::utils::colorize bold,white "${filename:r}")"
+      __tsm::commands::backup::session "$session_file"
     else
-      __tsm::log error "The current session was not saved"
+      __tsm::utils::log error "The current session was not saved"
       return 1
     fi
   fi
 
   if builtin print -- "$session_dump" >! "$session_file"; then
-    __tsm::log success "Session saved as $(__tsm::colorize bold,white "${filename:r}") in $(__tsm::colorize green "$session_file")"
+    __tsm::utils::log success "Session saved as $(__tsm::utils::colorize bold,white "${filename:r}") in $(__tsm::utils::colorize green "$session_file")"
   else
-    __tsm::log error "Unable to save the current session"
+    __tsm::utils::log error "Unable to save the current session"
     return 1
   fi
 }
 
-function __tsm::show() {
+function __tsm::commands::show() {
   local session_input_name="$1"
   if [[ -z "$session_input_name" ]]; then
-    __tsm::log error "Missing session name"
+    __tsm::utils::log error "Missing session name"
     return 1
   fi
 
@@ -685,18 +689,18 @@ function __tsm::show() {
   [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
 
   if [[ ! -f "$session_file" ]]; then
-    __tsm::log error "Session not found: $session_input_name"
+    __tsm::utils::log error "Session not found: $session_input_name"
     builtin print
-    __tsm::list
+    __tsm::commands::list
     return 1
   elif [[ ! -r "$session_file" ]]; then
-    __tsm::log error "Inaccessible session: $session_input_name"
+    __tsm::utils::log error "Inaccessible session: $session_input_name"
     return 1
   elif [[ ! -s "$session_file" ]]; then
-    __tsm::log error "Invalid session: $session_input_name"
+    __tsm::utils::log error "Invalid session: $session_input_name"
     return 1
   else
-    builtin print -- "Saved session: $(__tsm::colorize bold,white "$session_input_name")"
+    builtin print -- "Saved session: $(__tsm::utils::colorize bold,white "$session_input_name")"
   fi
 
   integer -l sessions_count windows_count
@@ -711,18 +715,18 @@ function __tsm::show() {
     fi
     windows_count+=1
 
-    builtin print -- "$(__tsm::colorize bold,white "${session_name}:") $window_name $(__tsm::colorize dimmed "$dir")"
+    builtin print -- "$(__tsm::utils::colorize bold,white "${session_name}:") $window_name $(__tsm::utils::colorize dimmed "$dir")"
   done < "$session_file"
 
-  builtin print -- "\nSummary: $(__tsm::colorize blue "$sessions_count") sessions and $(__tsm::colorize blue "$windows_count") windows"
+  builtin print -- "\nSummary: $(__tsm::utils::colorize blue "$sessions_count") sessions and $(__tsm::utils::colorize blue "$windows_count") windows"
   for k in "${(@k)session_registry}"; do
-    builtin print -- "  - $(__tsm::colorize bold,white "$k"): $(__tsm::colorize blue "${session_registry[$k]}") windows"
+    builtin print -- "  - $(__tsm::utils::colorize bold,white "$k"): $(__tsm::utils::colorize blue "${session_registry[$k]}") windows"
   done
 
-  builtin print -- "\nSession file path: $(__tsm::colorize green "$session_file")"
+  builtin print -- "\nSession file path: $(__tsm::utils::colorize green "$session_file")"
 }
 
-function __tsm::tsm() {
+function __tsm::commands::tsm() {
   cat <<"End-of-message"
                      [0;1;36;96m_[0m
                     [0;1;36;96m|[0m [0;1;34;94m|_[0m [0;1;35;95m_[0;1;31;91m__[0m [0;1;33;93m_[0m [0;1;32;92m_[0;1;36;96m_[0m [0;1;34;94m__[0;1;35;95m_[0m
@@ -740,11 +744,11 @@ End-of-message
 
 function __tsm::main() {
   local cmd="$1"
-  [[ "$cmd" == "tsm" ]] && { __tsm::tsm ; return $status }
+  [[ "$cmd" == "tsm" ]] && { __tsm::commands::tsm ; return $status }
   if (( ${+__tsm_commands[(r)$cmd]} )); then
-    __tsm::"$cmd" "${@:2}"
+    __tsm::commands::"$cmd" "${@:2}"
   else
-    __tsm::help
+    __tsm::commands::help
     return 1
   fi
 }

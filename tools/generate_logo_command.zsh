@@ -14,7 +14,7 @@ local __tsm_subtitle_string="$(builtin print -- "Save and restore the state of t
 
 {
 cat <<EOF
-function __tsm::tsm() {
+function __tsm::commands::tsm() {
   cat <<"End-of-message"
 ${__tsm_logo_string}
 

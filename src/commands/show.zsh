@@ -1,7 +1,7 @@
-function __tsm::show() {
+function __tsm::commands::show() {
   local session_input_name="$1"
   if [[ -z "$session_input_name" ]]; then
-    __tsm::log error "Missing session name"
+    __tsm::utils::log error "Missing session name"
     return 1
   fi
 
@@ -10,18 +10,18 @@ function __tsm::show() {
   [[ "${session_file:e}" == "txt" ]] || session_file+=".txt"
 
   if [[ ! -f "$session_file" ]]; then
-    __tsm::log error "Session not found: $session_input_name"
+    __tsm::utils::log error "Session not found: $session_input_name"
     builtin print
-    __tsm::list
+    __tsm::commands::list
     return 1
   elif [[ ! -r "$session_file" ]]; then
-    __tsm::log error "Inaccessible session: $session_input_name"
+    __tsm::utils::log error "Inaccessible session: $session_input_name"
     return 1
   elif [[ ! -s "$session_file" ]]; then
-    __tsm::log error "Invalid session: $session_input_name"
+    __tsm::utils::log error "Invalid session: $session_input_name"
     return 1
   else
-    builtin print -- "Saved session: $(__tsm::colorize bold,white "$session_input_name")"
+    builtin print -- "Saved session: $(__tsm::utils::colorize bold,white "$session_input_name")"
   fi
 
   integer -l sessions_count windows_count
@@ -36,13 +36,13 @@ function __tsm::show() {
     fi
     windows_count+=1
 
-    builtin print -- "$(__tsm::colorize bold,white "${session_name}:") $window_name $(__tsm::colorize dimmed "$dir")"
+    builtin print -- "$(__tsm::utils::colorize bold,white "${session_name}:") $window_name $(__tsm::utils::colorize dimmed "$dir")"
   done < "$session_file"
 
-  builtin print -- "\nSummary: $(__tsm::colorize blue "$sessions_count") sessions and $(__tsm::colorize blue "$windows_count") windows"
+  builtin print -- "\nSummary: $(__tsm::utils::colorize blue "$sessions_count") sessions and $(__tsm::utils::colorize blue "$windows_count") windows"
   for k in "${(@k)session_registry}"; do
-    builtin print -- "  - $(__tsm::colorize bold,white "$k"): $(__tsm::colorize blue "${session_registry[$k]}") windows"
+    builtin print -- "  - $(__tsm::utils::colorize bold,white "$k"): $(__tsm::utils::colorize blue "${session_registry[$k]}") windows"
   done
 
-  builtin print -- "\nSession file path: $(__tsm::colorize green "$session_file")"
+  builtin print -- "\nSession file path: $(__tsm::utils::colorize green "$session_file")"
 }

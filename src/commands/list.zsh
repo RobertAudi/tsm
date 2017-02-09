@@ -1,7 +1,7 @@
-function __tsm::list() {
+function __tsm::commands::list() {
   local -a session_files
   session_files=("${TSM_SESSIONS_DIR}"/*.txt(.NOmf:gu+r:))
-  builtin print -- "$(__tsm::colorize underline "Saved sessions:")\n"
+  builtin print -- "$(__tsm::utils::colorize underline "Saved sessions:")\n"
 
   # Get the length of the longest filename
   # Source: Chapter 5, paragraph 1, of the "A Users guide to the Z-Shell"
@@ -21,12 +21,12 @@ function __tsm::list() {
       fi
     done < "$f"
 
-    builtin printf "$(__tsm::colorize bold,white "%-*s")" $padding "${f:t:r}"
-    builtin printf "($(__tsm::colorize blue "%-2.0d") sessions and $(__tsm::colorize blue "%3.0d") windows)" "$sessions_count" "$windows_count"
-    builtin print -- ": $(__tsm::colorize dimmed "$f")"
+    builtin printf "$(__tsm::utils::colorize bold,white "%-*s")" $padding "${f:t:r}"
+    builtin printf "($(__tsm::utils::colorize blue "%-2.0d") sessions and $(__tsm::utils::colorize blue "%3.0d") windows)" "$sessions_count" "$windows_count"
+    builtin print -- ": $(__tsm::utils::colorize dimmed "$f")"
 
     windows_count=0 sessions_count=0 session_registry=()
   done
 
-  builtin print -- "\nNumber of saved sessions: $(__tsm::colorize blue "${#session_files}")"
+  builtin print -- "\nNumber of saved sessions: $(__tsm::utils::colorize blue "${#session_files}")"
 }

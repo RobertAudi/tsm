@@ -4,7 +4,7 @@
 # If it doesn't, return its exit code.
 # (i.e.: Its actual exit code, not just 1)
 #
-function __tsm::and-pipe() {
+function __tsm::utils::and_pipe() {
   if [[ -p /dev/stdin ]]; then
     local out=$(</dev/stdin)
     local res=${pipestatus[1]}

@@ -1,5 +1,5 @@
 # Ask Yes/No question
-function __tsm::ask() {
+function __tsm::utils::ask() {
   local query query_type="prompt"
   local -A opts
   zparseopts -D -A opts -- c p
@@ -9,24 +9,24 @@ function __tsm::ask() {
     query_type="prompt"
   fi
 
-  query="$(__tsm::trim::trailing "$@")"
+  query="$(__tsm::utils::trim::trailing "$@")"
   case "$query_type" in
-    confirmation) __tsm::ask::confirmation "$query" ;;
-    prompt) __tsm::ask::prompt "$query" ;;
+    confirmation) __tsm::utils::ask::confirmation "$query" ;;
+    prompt) __tsm::utils::ask::prompt "$query" ;;
     *)
-      __tsm::log fatal "Invalid query type: $(__tsm::colorize bold,white "${query_type}")"
+      __tsm::utils::log fatal "Invalid query type: $(__tsm::utils::colorize bold,white "${query_type}")"
       return 1
       ;;
   esac
 }
 
-function __tsm::ask::prompt() {
+function __tsm::utils::ask::prompt() {
   local prompt="$@"
   : ${prompt:=>}
   builtin read -e "?${prompt} "
 }
 
-function __tsm::ask::confirmation() {
+function __tsm::utils::ask::confirmation() {
   local question="${@%\?}"
   : ${question:=Are you sure}
   builtin read -qs "?${question} [y/n] "

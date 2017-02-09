@@ -1,6 +1,6 @@
 # Generate n (default: 1) random strings of c (default: 8) alphanumeric characters. Example:
 # => n5E8smo0
-function __tsm::random() {
+function __tsm::utils::random() {
   local -A opts
   zparseopts -D -A opts -- c: n:
 

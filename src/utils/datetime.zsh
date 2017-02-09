@@ -1,5 +1,5 @@
 # Generate a formatted timestamp including milliseconds
-function __tsm::datetime() {
+function __tsm::utils::datetime() {
   # NOTE: Padding with leading 0s might mess with the
   # ordering at the millisecond level. If that's a prolem
   # then it's definitely not mine. Don't be a PITA.

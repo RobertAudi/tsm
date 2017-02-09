@@ -5,7 +5,7 @@
 # n is $1 or $TSM_BACKUPS_COUNT
 # To be safe, the files will be removed only if they are
 # readable and writable by the current user.
-function __tsm::backup::clean() {
+function __tsm::commands::backup::clean() {
   integer -l count
   local -a files
   files=("${TSM_BACKUPS_DIR}"/*.txt(.NOmf:u+rw:))
@@ -16,7 +16,7 @@ function __tsm::backup::clean() {
   fi
 }
 
-function __tsm::backup::list() {
+function __tsm::commands::backup::list() {
   integer -l count
   local -a files
   local -A opts
@@ -32,32 +32,32 @@ function __tsm::backup::list() {
   builtin print -l -- ${files[1,$count]}
 }
 
-function __tsm::backup::session() {
+function __tsm::commands::backup::session() {
   local session_file="$1"
   if [[ ! -f "$session_file" ]]; then
-    __tsm::log error "Session file not found: '${session_file}'"
+    __tsm::utils::log error "Session file not found: '${session_file}'"
     return 1
   fi
 
   local session_dump
-  session_dump="$(__tsm::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump)" || return $status
 
-  local filename="$(__tsm::filename).$(__tsm::random).txt"
+  local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
   [[ -n "$session_file" ]] && filename="${session_file:A:t:r}.${filename}"
 
   builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
-    && __tsm::backup::clean
+    && __tsm::commands::backup::clean
 }
 
-function __tsm::backup() {
+function __tsm::commands::backup() {
   local session_dump
-  session_dump="$(__tsm::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump)" || return $status
 
-  local filename="$(__tsm::filename).$(__tsm::random).txt"
+  local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
   [[ -n "$1" ]] && filename="${1}.${filename}"
 
   builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
-    && __tsm::backup::clean
+    && __tsm::commands::backup::clean
 }
 
 # -------------------------------------------------------------------------- }}}

@@ -1,8 +1,8 @@
-function __tsm::help() {
+function __tsm::commands::help() {
   local cmd="$1"
-  [[ "$cmd" == "tsm" ]] && { __tsm::tsm ; return $status }
+  [[ "$cmd" == "tsm" ]] && { __tsm::commands::tsm ; return $status }
   if (( ${+__tsm_commands[(r)$cmd]} )); then
-    __tsm::help::"$@"
+    __tsm::commands::help::"$@"
   else
     cat <<Help-Message
 Usage: tsm <command>
@@ -21,56 +21,56 @@ Help-Message
   return 64
 }
 
-function __tsm::help::list() {
+function __tsm::commands::help::list() {
   cat <<Help-Message
 Usage: tsm list
 Help-Message
   return 64
 }
 
-function __tsm::help::show() {
+function __tsm::commands::help::show() {
   cat <<Help-Message
 Usage: tsm show <name>
 Help-Message
   return 64
 }
 
-function __tsm::help::save() {
+function __tsm::commands::help::save() {
   cat <<Help-Message
 Usage: tsm save [name]
 Help-Message
   return 64
 }
 
-function __tsm::help::rename() {
+function __tsm::commands::help::rename() {
   cat <<Help-Message
 Usage: tsm rename <name> [new-name]
 Help-Message
   return 64
 }
 
-function __tsm::help::restore() {
+function __tsm::commands::help::restore() {
   cat <<Help-Message
 Usage: tsm restore <name>
 Help-Message
   return 64
 }
 
-function __tsm::help::resume() {
+function __tsm::commands::help::resume() {
   cat <<Help-Message
 Usage: tsm resume <name>
 Help-Message
   return 64
 }
 
-function __tsm::help::quit() {
+function __tsm::commands::help::quit() {
   cat <<Help-Message
 Usage: tsm quit
 Help-Message
   return 64
 }
 
-function __tsm::help::help() {
+function __tsm::commands::help::help() {
   cat <<Help-Message
 Usage: tsm help [command]
 

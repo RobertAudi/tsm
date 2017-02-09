@@ -2,11 +2,11 @@
 
 function __tsm::main() {
   local cmd="$1"
-  [[ "$cmd" == "tsm" ]] && { __tsm::tsm ; return $status }
+  [[ "$cmd" == "tsm" ]] && { __tsm::commands::tsm ; return $status }
   if (( ${+__tsm_commands[(r)$cmd]} )); then
-    __tsm::"$cmd" "${@:2}"
+    __tsm::commands::"$cmd" "${@:2}"
   else
-    __tsm::help
+    __tsm::commands::help
     return 1
   fi
 }
