@@ -24,6 +24,7 @@ __tsm_commands=(
   list        "List saved sessions"
   show        "Show details about a session"
   save        "Save the current session"
+  remove      "Remove a saved session"
   rename      "Rename a saved session"
   restore     "Restore a saved session"
   resume      "Restore and attach a saved session"

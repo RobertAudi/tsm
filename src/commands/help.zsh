@@ -42,6 +42,13 @@ Help-Message
   return 64
 }
 
+function __tsm::commands::help::remove() {
+  cat <<Help-Message
+Usage: tsm remove <name>
+Help-Message
+  return 64
+}
+
 function __tsm::commands::help::restore() {
   cat <<Help-Message
 Usage: tsm restore <name>
