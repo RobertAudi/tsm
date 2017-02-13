@@ -72,6 +72,9 @@ Commands
 - [x] `remove`
 - [ ] `duplicate`
 - [x] `rename`
+- [ ] `migrate`
+- [ ] `env`
+- [ ] `doctor`
 
 TODO
 ----
