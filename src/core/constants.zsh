@@ -28,6 +28,7 @@ __tsm_commands=(
   restore     "Restore a saved session"
   resume      "Restore and attach a saved session"
   quit        "Quit tmux"
+  version     "Show version"
   help        "Show usage information"
 )
 readonly -l __tsm_commands

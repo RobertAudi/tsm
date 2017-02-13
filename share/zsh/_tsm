@@ -1,4 +1,4 @@
 #compdef tsm
 #autoload
 
-_values "commands" "list" "show" "save" "rename" "restore" "resume" "quit" "help" && ret=0
+_values "commands" "list" "show" "save" "rename" "restore" "resume" "quit" "version" "help" && ret=0

@@ -63,6 +63,13 @@ Help-Message
   return 64
 }
 
+function __tsm::commands::help::version() {
+  cat <<Help-Message
+Usage: tsm version
+Help-Message
+  return 64
+}
+
 function __tsm::commands::help::help() {
   cat <<Help-Message
 Usage: tsm help [command]
