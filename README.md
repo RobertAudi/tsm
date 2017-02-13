@@ -65,8 +65,9 @@ Commands
 - [ ] `backup`
 - [ ] `cleanup`
 - [x] `help`
+- [x] `version`
 - [ ] `edit`
-- [ ] `remove`
+- [x] `remove`
 - [ ] `duplicate`
 - [x] `rename`
 
