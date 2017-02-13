@@ -20,7 +20,7 @@ function __tsm::utils::log() {
   esac
 
   integer -l left_padding=$(( 7 - ${#level} ))
-  builtin printf "%s$(__tsm::utils::colorize $level "%*s")%-2s" "[" ${#level} "${(U)level}" "]" >&2
+  builtin printf "%s$(__tsm::utils::colorize $level_color "%*s")%-2s" "[" ${#level} "${(U)level}" "]" >&2
   builtin printf "$(__tsm::utils::colorize blue "%-4s")" "${prefix}" >&2
   builtin printf "%s\n" "$message" >&2
 }
