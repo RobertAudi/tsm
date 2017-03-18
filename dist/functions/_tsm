@@ -1,4 +1,22 @@
 #compdef tsm
 #autoload
 
-_values "commands" "list" "show" "save" "remove" "rename" "restore" "resume" "quit" "version" "help" && ret=0
+_tsm_commands=(
+  'list:List saved sessions'
+  'show:Show details about a session'
+  'save:Save the current session'
+  'remove:Remove a saved session'
+  'rename:Rename a saved session'
+  'restore:Restore a saved session'
+  'resume:Restore and attach a saved session'
+  'quit:Quit tmux'
+  'version:Show version'
+  'help:Show usage information'
+)
+
+_arguments '*:: :->command'
+
+if (( CURRENT == 1 )); then
+  _describe -t commands "tsm commands" _tsm_commands
+  return
+fi
