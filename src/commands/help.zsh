@@ -49,6 +49,13 @@ Help-Message
   return 64
 }
 
+function __tsm::commands::help::duplicate() {
+  cat <<Help-Message
+Usage: tsm duplicate <name>
+Help-Message
+  return 64
+}
+
 function __tsm::commands::help::remove() {
   cat <<Help-Message
 Usage: tsm remove <name>

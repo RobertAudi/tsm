@@ -71,7 +71,7 @@ Commands
 - [ ] `edit`
 - [x] `remove`
 - [x] `copy`
-- [ ] `duplicate`
+- [x] `duplicate`
 - [x] `rename`
 - [ ] `migrate`
 - [ ] `env`

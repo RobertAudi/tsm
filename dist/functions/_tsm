@@ -8,6 +8,7 @@ _tsm_commands=(
   'remove:Remove a saved session'
   'rename:Rename a saved session'
   'copy:Copy a saved session'
+  'duplicate:Duplicate a saved session'
   'restore:Restore a saved session'
   'resume:Restore and attach a saved session'
   'quit:Quit tmux'
