@@ -42,6 +42,13 @@ Help-Message
   return 64
 }
 
+function __tsm::commands::help::copy() {
+  cat <<Help-Message
+Usage: tsm copy <name> [new-name]
+Help-Message
+  return 64
+}
+
 function __tsm::commands::help::remove() {
   cat <<Help-Message
 Usage: tsm remove <name>

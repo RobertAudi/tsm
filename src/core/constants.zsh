@@ -26,6 +26,7 @@ __tsm_commands=(
   save        "Save the current session"
   remove      "Remove a saved session"
   rename      "Rename a saved session"
+  copy        "Copy a saved session"
   restore     "Restore a saved session"
   resume      "Restore and attach a saved session"
   quit        "Quit tmux"

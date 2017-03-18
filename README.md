@@ -70,6 +70,7 @@ Commands
 - [x] `version`
 - [ ] `edit`
 - [x] `remove`
+- [x] `copy`
 - [ ] `duplicate`
 - [x] `rename`
 - [ ] `migrate`
