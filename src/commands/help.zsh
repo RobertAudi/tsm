@@ -73,6 +73,15 @@ Help-Message
 function __tsm::commands::help::resume() {
   cat <<Help-Message
 Usage: tsm resume <name>
+Aliased as: open
+Help-Message
+  return 64
+}
+
+function __tsm::commands::help::open() {
+  cat <<Help-Message
+Usage: tsm open <name>
+Alias of: resume
 Help-Message
   return 64
 }

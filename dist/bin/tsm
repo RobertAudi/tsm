@@ -70,17 +70,17 @@ readonly -l colors
 
 local -A __tsm_commands
 __tsm_commands=(
-  list        "List saved sessions"
-  show        "Show details about a session"
-  save        "Save the current session"
-  remove      "Remove a saved session"
-  rename      "Rename a saved session"
-  copy        "Copy a saved session"
-  restore     "Restore a saved session"
-  resume      "Restore and attach a saved session"
-  quit        "Quit tmux"
-  version     "Show version"
-  help        "Show usage information"
+  list            "List saved sessions"
+  show            "Show details about a session"
+  save            "Save the current session"
+  remove          "Remove a saved session"
+  rename          "Rename a saved session"
+  copy            "Copy a saved session"
+  restore         "Restore a saved session"
+  resume,open     "Restore and attach a saved session"
+  quit            "Quit tmux"
+  version         "Show version"
+  help            "Show usage information"
 )
 readonly -l __tsm_commands
 
@@ -595,6 +595,15 @@ Help-Message
 function __tsm::commands::help::resume() {
   cat <<Help-Message
 Usage: tsm resume <name>
+Aliased as: open
+Help-Message
+  return 64
+}
+
+function __tsm::commands::help::open() {
+  cat <<Help-Message
+Usage: tsm open <name>
+Alias of: resume
 Help-Message
   return 64
 }
@@ -654,6 +663,12 @@ function __tsm::commands::list() {
   done
 
   builtin print -- "\nNumber of saved sessions: $(__tsm::utils::colorize blue "${#session_files}")"
+}
+
+# Restore a session and attach to one
+# Alias of: __tsm::commands::resume
+function __tsm::commands::open() {
+  __tsm::commands::resume "$@"
 }
 
 # Create a backup of the current tmux session
@@ -825,6 +840,7 @@ function __tsm::commands::restore() {
 # -------------------------------------------------------------------------- }}}
 
 # Restore a session and attach to one
+# Also alias as: __tsm::commands::resume
 # TODO: Specify which tmux session to attach to
 function __tsm::commands::resume() {
   __tsm::commands::restore "$@" && { __tsm::utils::inside_tmux || command tmux attach }
