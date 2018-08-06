@@ -35,4 +35,17 @@ __tsm_commands=(
 )
 readonly -l __tsm_commands
 
+local __tsm_tmux_delimiter
+__tsm_tmux_delimiter=$'\t'
+readonly __tsm_tmux_delimiter
+
+local -A __tsm_tmux_formats
+__tsm_tmux_formats=(
+  pane             "#{session_name}${__tsm_tmux_delimiter}#{window_index}:#{window_name}${__tsm_tmux_delimiter}#{window_active}:#{window_flags}${__tsm_tmux_delimiter}#{pane_index}:#{pane_current_path}${__tsm_tmux_delimiter}#{pane_active}"
+  window           "#{session_name}${__tsm_tmux_delimiter}#{window_index}${__tsm_tmux_delimiter}#{window_active}:#{window_flags}${__tsm_tmux_delimiter}#{window_layout}"
+  grouped_sessions "#{session_grouped}${__tsm_tmux_delimiter}#{session_group}${__tsm_tmux_delimiter}#{session_id}${__tsm_tmux_delimiter}#{session_name}"
+  state            "#{client_session}${__tsm_tmux_delimiter}#{client_last_session}"
+)
+readonly -l __tsm_tmux_formats
+
 # -------------------------------------------------------------------------- }}}

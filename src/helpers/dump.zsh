@@ -6,8 +6,7 @@
 #
 # Caveat: Window panes are ignored.
 function __tsm::helpers::dump() {
-  local d=$'\t'
   # FIXME: Fail if tmux is not running
   # TODO: Find a way to dump all panes including enough info to be able to restore them
-  command tmux list-panes -a -F "#S${d}#W${d}#{pane_current_path}"
+  command tmux list-panes -a -F "${__tsm_tmux_formats[pane]}"
 }
