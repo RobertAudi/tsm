@@ -5,3 +5,8 @@ function __tsm::utils::datetime() {
   # then it's definitely not mine. Don't be a PITA.
   builtin printf "%s.%03d" "$(builtin strftime "%Y-%m-%dT%H:%M:%S" $epochtime[1])" "$(($epochtime[2] / 1000000))"
 }
+
+# Return the creation time of a file
+function __tsm::utils::datetime::ctime() {
+  builtin zstat -F "%Y-%m-%dT%H:%M:%S" +ctime "$1"
+}
