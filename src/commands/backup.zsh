@@ -39,13 +39,8 @@ function __tsm::commands::backup::session() {
     return 1
   fi
 
-  local session_dump
-  session_dump="$(__tsm::helpers::dump)" || return $status
-
-  local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
-  [[ -n "$session_file" ]] && filename="${session_file:A:t:r}.${filename}"
-
-  builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
+  local filename="${session_file:A:t:r}.$(__tsm::utils::datetime::ctime "$session_file").$(__tsm::utils::random).txt"
+  command cp -f "$session_file" "${TSM_BACKUPS_DIR}/$filename" >/dev/null \
     && __tsm::commands::backup::clean
 }
 
