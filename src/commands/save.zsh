@@ -4,7 +4,7 @@
 # asked to confirm before override the existing one.
 function __tsm::commands::save() {
   local session_dump
-  session_dump="$(__tsm::helpers::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump_panes)" || return $status
 
   local filename="${1:-$(__tsm::utils::filename)}.txt"
   local session_file="${TSM_SESSIONS_DIR}/$filename"

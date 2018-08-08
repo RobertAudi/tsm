@@ -1,12 +1,19 @@
-# Dump the list of tmux windows using the following
-# three components separated by a tab character `\t`:
-# - Session name
-# - Window name
-# - Window working directory path
-#
-# Caveat: Window panes are ignored.
-function __tsm::helpers::dump() {
-  # FIXME: Fail if tmux is not running
-  # TODO: Find a way to dump all panes including enough info to be able to restore them
+# Dump the list of tmux panes
+function __tsm::helpers::dump_panes() {
   command tmux list-panes -a -F "${__tsm_tmux_formats[pane]}"
+}
+
+# Dump the list of tmux panes prefixed with the list type (pane)
+function __tsm::helpers::dump_panes::annotated() {
+  command tmux list-panes -a -F "pane${__tsm_tmux_delimiter}${__tsm_tmux_formats[pane]}"
+}
+
+# Dump the list of tmux windows
+function __tsm::helpers::dump_windows() {
+  command tmux list-windows -a -F "${__tsm_tmux_formats[window]}"
+}
+
+# Dump the list of tmux windows prefixed with the list type (window)
+function __tsm::helpers::dump_windows::annotated() {
+  command tmux list-windows -a -F "window${__tsm_tmux_delimiter}${__tsm_tmux_formats[window]}"
 }
