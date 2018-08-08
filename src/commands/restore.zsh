@@ -54,7 +54,7 @@ function __tsm::commands::restore() {
 
   while IFS=$'\t' read session_name window_name dir; do
     if [[ -d "$dir" && "$window_name" != "log" && "$window_name" != "man" ]]; then
-      if __tsm::utils::session_exists "$session_name"; then
+      if __tsm::helpers::session_exists "$session_name"; then
         __tsm::helpers::add_window "$session_name" "$window_name" "$dir"
       else
         __tsm::helpers::new_session "$session_name" "$window_name" "$dir" "$dimensions"
