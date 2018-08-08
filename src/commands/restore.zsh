@@ -52,7 +52,7 @@ function __tsm::commands::restore() {
 
   dimensions="$(__tsm::utils::dimensions_parameters)"
 
-  while IFS=$'\t' read session_name window_name dir; do
+  while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
     if [[ -d "$dir" && "$window_name" != "log" && "$window_name" != "man" ]]; then
       if __tsm::helpers::session_exists "$session_name"; then
         __tsm::helpers::add_window "$session_name" "$window_name" "$dir"
