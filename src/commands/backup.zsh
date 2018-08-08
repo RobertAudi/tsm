@@ -46,7 +46,7 @@ function __tsm::commands::backup::session() {
 
 function __tsm::commands::backup() {
   local session_dump
-  session_dump="$(__tsm::helpers::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump_panes)" || return $status
 
   local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
   [[ -n "$1" ]] && filename="${1}.${filename}"
