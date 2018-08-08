@@ -26,7 +26,7 @@ function __tsm::commands::show() {
 
   integer -l sessions_count windows_count
   local -A session_registry
-  while IFS=$'\t' read session_name window_name dir; do
+  while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
     if (( ${+session_registry[$session_name]} )); then
       session_registry[$session_name]=$((session_registry[$session_name] + 1))
     else

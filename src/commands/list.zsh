@@ -13,7 +13,7 @@ function __tsm::commands::list() {
   local -A session_registry
 
   for f in $session_files; do
-    while IFS=$'\t' read session_name window_name dir; do
+    while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
       windows_count+=1
       if ! (( ${+session_registry[$session_name]} )); then
         session_registry[$session_name]=$((session_registry[$session_name] + 1))
