@@ -43,6 +43,11 @@ function __tsm::commands::restore::restorable_file() {
   return 1
 }
 
+function __tsm::commands::restore::restore_pane() {
+  while IFS=$__tsm_tmux_delimiter read line_type session_name window_number window_name window_active window_flags pane_index dir pane_active; do
+  done < <(builtin print -- "$1")
+}
+
 function __tsm::commands::restore() {
   integer -l sessions_count windows_count
   local session_file dimensions
@@ -51,6 +56,13 @@ function __tsm::commands::restore() {
   command tmux start-server
 
   dimensions="$(__tsm::utils::dimensions_parameters)"
+
+  # local line
+  # while read line; do
+  #   if __tsm::helpers::is_line_type::pane "$line"; then
+  #     __tsm::commands::restore::restore_pane "$line"
+  #   fi
+  # done < "$session_file"
 
   while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
     if [[ -d "$dir" && "$window_name" != "log" && "$window_name" != "man" ]]; then

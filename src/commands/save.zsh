@@ -3,8 +3,9 @@
 # If a session with the same name exists, the user will be
 # asked to confirm before override the existing one.
 function __tsm::commands::save() {
-  local session_dump
-  session_dump="$(__tsm::helpers::dump_panes)" || return $status
+  local session_dump window_dump
+  window_dump="$(__tsm::helpers::dump_windows::annotated)" || return $status
+  session_dump="$(__tsm::helpers::dump_panes::annotated)" || return $status
 
   local filename="${1:-$(__tsm::utils::filename)}.txt"
   local session_file="${TSM_SESSIONS_DIR}/$filename"
@@ -20,7 +21,7 @@ function __tsm::commands::save() {
     fi
   fi
 
-  if builtin print -- "$session_dump" >! "$session_file"; then
+  if builtin print -- "$window_dump" "$session_dump" >! "$session_file"; then
     __tsm::utils::log success "Session saved as $(__tsm::utils::colorize bold,white "${filename:r}") in $(__tsm::utils::colorize green "$session_file")"
   else
     __tsm::utils::log error "Unable to save the current session"
