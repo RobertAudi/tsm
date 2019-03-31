@@ -77,7 +77,7 @@ __tsm_commands=(
   rename          "Rename a saved session"
   copy            "Copy a saved session"
   restore         "Restore a saved session"
-  resume,open     "Restore and attach a saved session"
+  resume          "Restore and attach a saved session"
   quit            "Quit tmux"
   version         "Show version"
   help            "Show usage information"
@@ -595,15 +595,6 @@ Help-Message
 function __tsm::commands::help::resume() {
   cat <<Help-Message
 Usage: tsm resume <name>
-Aliased as: open
-Help-Message
-  return 64
-}
-
-function __tsm::commands::help::open() {
-  cat <<Help-Message
-Usage: tsm open <name>
-Alias of: resume
 Help-Message
   return 64
 }
@@ -668,6 +659,10 @@ function __tsm::commands::list() {
 # Restore a session and attach to one
 # Alias of: __tsm::commands::resume
 function __tsm::commands::open() {
+  __tsm::utils::log warn \
+    "The $(__tsm::utils::colorize warn "open") command" \
+    "is $(__tsm::utils::colorize bold,underline "DEPRECATED")," \
+    "use the $(__tsm::utils::colorize info "reusme") command instead."
   __tsm::commands::resume "$@"
 }
 
