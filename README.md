@@ -43,7 +43,7 @@ For a "stable" version:
 
 For the latest version:
 
-- Run `./build.zsh`
+- Run `make`
 - Put `build/tsm` in a directory in your `$PATH`
 - Put `share/zsh/_tsm` in a directory in your `$FPATH` (optional)
 
