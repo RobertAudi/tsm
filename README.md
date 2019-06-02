@@ -4,15 +4,33 @@ Tmux Session Manager
 Installation
 ------------
 
-### zplug
+### [Zplugin](https://github.com/zdharma/zplugin)
 
+```sh
+zplugin light "RobertAudi/tsm"
 ```
+
+### [zplug](https://github.com/zplug/zplug)
+
+```sh
 zplug "RobertAudi/tsm"
+```
+
+### [zgen](https://github.com/tarjoilija/zgen)
+
+```sh
+zgen load RobertAudi/tsm
+```
+
+### [Antigen](http://antigen.sharats.me/)
+
+```sh
+antigen bundle RobertAudi/tsm
 ```
 
 ### As a plugin
 
-```shell
+```console
 $ source "tsm.plugin.zsh"
 ```
 
