@@ -1,2 +1,2 @@
-local __tsm_version="0.1.5"
+local __tsm_version="0.1.6"
 readonly __tsm_version
