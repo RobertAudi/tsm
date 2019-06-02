@@ -19,19 +19,15 @@ function {
   fi
 
   {
-    command mkdir -p \
+    command mkdir -v -p -m 700 \
       "${__tsm_dist_dir}" \
       "${__tsm_dist_bin_dir}" \
       "${__tsm_dist_functions_dir}"
 
-    command rm -f \
-      "${__tsm_dist_bin_dir}/${__tsm_script_filename}" \
-      "${__tsm_dist_functions_dir}/${__tsm_completion_filename}"
-
-    command cp "${__tsm_build_dir}/${__tsm_script_filename}" "${__tsm_dist_bin_dir}/${__tsm_script_filename}"
+    command cp -f "${__tsm_build_dir}/${__tsm_script_filename}" "${__tsm_dist_bin_dir}/${__tsm_script_filename}"
 
     if [[ -f "${__tsm_share_dir}/${__tsm_completion_filename}" ]]; then
-      command cp "${__tsm_share_dir}/${__tsm_completion_filename}" "${__tsm_dist_functions_dir}/${__tsm_completion_filename}"
+      command cp -f "${__tsm_share_dir}/${__tsm_completion_filename}" "${__tsm_dist_functions_dir}/${__tsm_completion_filename}"
     fi
 
   } &>/dev/null
