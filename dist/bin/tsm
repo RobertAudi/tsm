@@ -19,6 +19,7 @@ emulate -LR zsh
 
 zmodload zsh/parameter
 zmodload zsh/datetime
+zmodload -F zsh/stat b:zstat
 
 setopt extended_glob
 setopt typeset_silent
@@ -31,10 +32,7 @@ setopt NO_clobber
 # |Configuration| {{{
 # ------------------------------------------------------------------------------
 
-: ${TSM_LEGACY_HOME=$HOME/.tmux/tmux-sessions}
-: ${TSM_LEGACY_SESSIONS_DIR:=$TSM_LEGACY_HOME/sessions}
-
-: ${TSM_HOME:=${XDG_DATA_HOME:-$HOME/.local/share}/tmux-sessions}
+: ${TSM_HOME:=${XDG_DATA_HOME:-$HOME/.local/share}/tsm}
 : ${TSM_SESSIONS_DIR:=$TSM_HOME/sessions}
 : ${TSM_BACKUPS_DIR:=$TSM_HOME/backups}
 : ${TSM_DEFAULT_SESSION_FILE:=$TSM_HOME/default-session.txt}
@@ -84,9 +82,22 @@ __tsm_commands=(
 )
 readonly -l __tsm_commands
 
+local __tsm_tmux_delimiter
+__tsm_tmux_delimiter=$'\t'
+readonly __tsm_tmux_delimiter
+
+local -A __tsm_tmux_formats
+__tsm_tmux_formats=(
+  pane             "#{session_name}${__tsm_tmux_delimiter}#{window_index}:#{window_name}${__tsm_tmux_delimiter}#{window_active}:#{window_flags}${__tsm_tmux_delimiter}#{pane_index}:#{pane_current_path}${__tsm_tmux_delimiter}#{pane_active}"
+  window           "#{session_name}${__tsm_tmux_delimiter}#{window_index}${__tsm_tmux_delimiter}#{window_active}:#{window_flags}${__tsm_tmux_delimiter}#{window_layout}"
+  grouped_sessions "#{session_grouped}${__tsm_tmux_delimiter}#{session_group}${__tsm_tmux_delimiter}#{session_id}${__tsm_tmux_delimiter}#{session_name}"
+  state            "#{client_session}${__tsm_tmux_delimiter}#{client_last_session}"
+)
+readonly -l __tsm_tmux_formats
+
 # -------------------------------------------------------------------------- }}}
 
-local __tsm_version="0.1.4"
+local __tsm_version="0.1.5"
 readonly __tsm_version
 
 # Usage: command1 | and-pipe command2
@@ -169,6 +180,11 @@ function __tsm::utils::datetime() {
   builtin printf "%s.%03d" "$(builtin strftime "%Y-%m-%dT%H:%M:%S" $epochtime[1])" "$(($epochtime[2] / 1000000))"
 }
 
+# Return the creation time of a file
+function __tsm::utils::datetime::ctime() {
+  builtin zstat -F "%Y-%m-%dT%H:%M:%S" +ctime "$1"
+}
+
 # This function will return width/height parameters
 # that will be passed to the `tmux new-session` command
 function __tsm::utils::dimensions_parameters() {
@@ -182,14 +198,6 @@ function __tsm::utils::filename() {
   builtin print -- "${1:-__tsm__}-$(__tsm::utils::datetime)"
 }
 
-
-# Check if tmux is running AND active
-# (ie: we are inside a tmux session)
-function __tsm::utils::inside_tmux() {
-  { __tsm::utils::tmux_running && [[ -n "$TMUX" ]] } || return 1
-  local -a tmux_info ; tmux_info=("${(s:,:)TMUX}")
-  [[ -S "${tmux_info[1]}" ]] && builtin kill -s 0 "${tmux_info[2]}" &>/dev/null
-}
 
 # Log a message to STDERR.
 # Messages are printed to STDERR instead of STDOUT
@@ -253,20 +261,6 @@ function __tsm::utils::separator() {
   builtin print -r -- "${(pl:$width::$sep:)}"
 }
 
-# Check if a tmux session exists.
-function __tsm::utils::session_exists() {
-  command tmux has-session -t "$1" 2>/dev/null
-}
-
-# Check if the tmux server is running.
-# I am not a fan of the approach used
-# but it will have to do until I find
-# a better way of doing it.
-function __tsm::utils::tmux_running() {
-  command tmux info &> /dev/null
-}
-
-
 function __tsm::utils::trim() {
   local -A opts
   zparseopts -D -A opts -- l t b
@@ -303,19 +297,62 @@ function __tsm::helpers::add_window() {
   command tmux new-window -d -t "$session_name:" -n "$window_name" -c "$working_directory"
 }
 
-# Dump the list of tmux windows using the following
-# three components separated by a tab character `\t`:
-# - Session name
-# - Window name
-# - Window working directory path
-#
-# Caveat: Window panes are ignored.
-function __tsm::helpers::dump() {
-  local d=$'\t'
-  # FIXME: Fail if tmux is not running
-  # TODO: Find a way to dump all panes including enough info to be able to restore them
-  command tmux list-panes -a -F "#S${d}#W${d}#{pane_current_path}"
+# Dump the list of tmux panes
+function __tsm::helpers::dump_panes() {
+  command tmux list-panes -a -F "${__tsm_tmux_formats[pane]}"
 }
+
+# Dump the list of tmux panes prefixed with the list type (pane)
+function __tsm::helpers::dump_panes::annotated() {
+  command tmux list-panes -a -F "pane${__tsm_tmux_delimiter}${__tsm_tmux_formats[pane]}"
+}
+
+# Dump the list of tmux windows
+function __tsm::helpers::dump_windows() {
+  command tmux list-windows -a -F "${__tsm_tmux_formats[window]}"
+}
+
+# Dump the list of tmux windows prefixed with the list type (window)
+function __tsm::helpers::dump_windows::annotated() {
+  command tmux list-windows -a -F "window${__tsm_tmux_delimiter}${__tsm_tmux_formats[window]}"
+}
+
+function __tsm::helpers::get_active_window_index() {
+  command tmux list-windows -t "$1" -F "#{window_flags} #{window_index}" \
+    | command awk '$1 ~ /\*/ { print $2; }'
+}
+
+function __tsm::helpers::get_alternate_window_index() {
+  command tmux list-windows -t "$1" -F "#{window_flags} #{window_index}" \
+    | command awk '$1 ~ /-/ { print $2; }'
+}
+
+# Check if tmux is running AND active
+# (ie: we are inside a tmux session)
+function __tsm::helpers::inside_tmux() {
+  { __tsm::helpers::tmux_running && [[ -n "$TMUX" ]] } || return 1
+  local -a tmux_info ; tmux_info=("${(s:,:)TMUX}")
+  [[ -S "${tmux_info[1]}" ]] && builtin kill -s 0 "${tmux_info[2]}" &>/dev/null
+}
+
+# ------------------------------------------------------------------------------
+# When dumping windows and panes, the line type is prepended to each line
+# These functions help identify the type of a line
+
+function __tsm::helpers::is_line_type() {
+  local line_type="$1" line="$2"
+  [[ "$line" =~ "^$line_type" ]]
+}
+
+function __tsm::helpers::is_line_type::pane() {
+  __tsm::helpers::is_line_type "pane" "$1"
+}
+
+function __tsm::helpers::is_line_type::window() {
+  __tsm::helpers::is_line_type "window" "$1"
+}
+
+# ------------------------------------------------------------------------------
 
 # Create a new tmux session.
 # A dummy window is created so that the working
@@ -325,15 +362,31 @@ function __tsm::helpers::dump() {
 function __tsm::helpers::new_session() {
   local session_name="$1" window_name="$2" window_working_directory="$3"
   local dimensions="${4:-$(__tsm::utils::dimensions_parameters)}"
-  local session_working_directory dummy_window
+  local session_working_directory dummy_window dummy_window_index
   session_working_directory="$HOME"
   dummy_window="__dummy-window-${EPOCHREALTIME/./}-$(__tsm::utils::random)__"
 
   command tmux new-session -d -s "$session_name" -n "$dummy_window" -c "$HOME" $=dimensions
+  dummy_window_index="$(command tmux list-windows -t "$session_name" | command grep "$dummy_window" | command cut -d: -f1)"
+
   __tsm::helpers::add_window "$session_name" "$window_name" "$window_working_directory"
-  command tmux kill-window -t "$dummy_window"
+
+  command tmux kill-window -t "${session_name}:${dummy_window_index}"
 }
 
+
+# Check if a tmux session exists.
+function __tsm::helpers::session_exists() {
+  command tmux has-session -t "$1" 2>/dev/null
+}
+
+# Check if the tmux server is running.
+# I am not a fan of the approach used
+# but it will have to do until I find
+# a better way of doing it.
+function __tsm::helpers::tmux_running() {
+  command tmux info &> /dev/null
+}
 
 # |Backup| {{{
 # ------------------------------------------------------------------------------
@@ -376,19 +429,14 @@ function __tsm::commands::backup::session() {
     return 1
   fi
 
-  local session_dump
-  session_dump="$(__tsm::helpers::dump)" || return $status
-
-  local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
-  [[ -n "$session_file" ]] && filename="${session_file:A:t:r}.${filename}"
-
-  builtin print -- "$session_dump" > "${TSM_BACKUPS_DIR}/$filename" \
+  local filename="${session_file:A:t:r}.$(__tsm::utils::datetime::ctime "$session_file").$(__tsm::utils::random).txt"
+  command cp -f "$session_file" "${TSM_BACKUPS_DIR}/$filename" >/dev/null \
     && __tsm::commands::backup::clean
 }
 
 function __tsm::commands::backup() {
   local session_dump
-  session_dump="$(__tsm::helpers::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump_panes)" || return $status
 
   local filename="$(__tsm::utils::filename).$(__tsm::utils::random).txt"
   [[ -n "$1" ]] && filename="${1}.${filename}"
@@ -448,44 +496,6 @@ function __tsm::commands::copy() {
 
   __tsm::utils::log info "Copying session: $(__tsm::utils::colorize bold,white "$session_name") -> $(__tsm::utils::colorize bold,white "$new_session_name")"
   command cp -f "$session_file" "$new_session_file" >/dev/null
-}
-
-# TODO: Refactor. This code is worse than puke.
-function __tsm::commands::doctor::legacy() {
-  [[ -d "$TSM_LEGACY_SESSIONS_DIR" ]] || return
-
-  local -a legacy_session_files
-  legacy_session_files=("${TSM_LEGACY_SESSIONS_DIR}"/*.txt(.NOmf:gu+r:))
-
-  # No legacy session files, no point testing anything else...
-  (( ${#legacy_session_files} == 0 )) && return
-
-  __tsm::utils::log warn "Legacy sessions found"
-
-  local -a session_files
-  session_files=("${TSM_SESSIONS_DIR}"/*.txt(.NOmf:gu+r:))
-
-  if (( ${#session_files} == 0 )); then
-    builtin printf "$(__tsm::utils::colorize blue "%s")" " --> " >&2
-    builtin printf "%s\n" "There aren't any saved sessions. You can import the legacy sessions with the following command:" >&2
-
-    builtin printf "$(__tsm::utils::colorize blue "%s")\n" " >>> " >&2
-    builtin printf "$(__tsm::utils::colorize blue "%s")" " >>> " >&2
-    builtin printf "%*s$(__tsm::utils::colorize dimmed "%s")\n" 2 "" "cp -v ${TSM_LEGACY_SESSIONS_DIR:A}/*.txt ${TSM_SESSIONS_DIR:A}/" >&2
-    builtin printf "$(__tsm::utils::colorize blue "%s")\n" " >>> " >&2
-  else
-    # FIXME: Only show the following output if a `-v|--versbose` flag was passed
-    builtin printf "$(__tsm::utils::colorize blue "%s")" " --> " >&2
-    builtin printf "%s\n" "You can remove the legacy sessions with the following command:" >&2
-
-    builtin printf "$(__tsm::utils::colorize blue "%s")\n" " >>> " >&2
-    builtin printf "$(__tsm::utils::colorize blue "%s")" " >>> " >&2
-    builtin printf "%*s$(__tsm::utils::colorize dimmed "%s")\n" 2 "" "rm -v ${TSM_LEGACY_SESSIONS_DIR:A}/*.txt" >&2
-    builtin printf "$(__tsm::utils::colorize blue "%s")\n" " >>> " >&2
-  fi
-
-  __tsm::utils::separator "-"
-  builtin print
 }
 
 function __tsm::commands::duplicate() {
@@ -638,7 +648,7 @@ function __tsm::commands::list() {
   local -A session_registry
 
   for f in $session_files; do
-    while IFS=$'\t' read session_name window_name dir; do
+    while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
       windows_count+=1
       if ! (( ${+session_registry[$session_name]} )); then
         session_registry[$session_name]=$((session_registry[$session_name] + 1))
@@ -654,16 +664,6 @@ function __tsm::commands::list() {
   done
 
   builtin print -- "\nNumber of saved sessions: $(__tsm::utils::colorize blue "${#session_files}")"
-}
-
-# Restore a session and attach to one
-# Alias of: __tsm::commands::resume
-function __tsm::commands::open() {
-  __tsm::utils::log warn \
-    "The $(__tsm::utils::colorize warn "open") command" \
-    "is $(__tsm::utils::colorize bold,underline "DEPRECATED")," \
-    "use the $(__tsm::utils::colorize info "reusme") command instead."
-  __tsm::commands::resume "$@"
 }
 
 # Create a backup of the current tmux session
@@ -817,9 +817,9 @@ function __tsm::commands::restore() {
 
   dimensions="$(__tsm::utils::dimensions_parameters)"
 
-  while IFS=$'\t' read session_name window_name dir; do
+  while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
     if [[ -d "$dir" && "$window_name" != "log" && "$window_name" != "man" ]]; then
-      if __tsm::utils::session_exists "$session_name"; then
+      if __tsm::helpers::session_exists "$session_name"; then
         __tsm::helpers::add_window "$session_name" "$window_name" "$dir"
       else
         __tsm::helpers::new_session "$session_name" "$window_name" "$dir" "$dimensions"
@@ -838,7 +838,7 @@ function __tsm::commands::restore() {
 # Also alias as: __tsm::commands::resume
 # TODO: Specify which tmux session to attach to
 function __tsm::commands::resume() {
-  __tsm::commands::restore "$@" && { __tsm::utils::inside_tmux || command tmux attach }
+  __tsm::commands::restore "$@" && { __tsm::helpers::inside_tmux || command tmux attach }
 }
 
 # Save the current session. If a name is not specified
@@ -847,7 +847,7 @@ function __tsm::commands::resume() {
 # asked to confirm before override the existing one.
 function __tsm::commands::save() {
   local session_dump
-  session_dump="$(__tsm::helpers::dump)" || return $status
+  session_dump="$(__tsm::helpers::dump_panes)" || return $status
 
   local filename="${1:-$(__tsm::utils::filename)}.txt"
   local session_file="${TSM_SESSIONS_DIR}/$filename"
@@ -899,7 +899,7 @@ function __tsm::commands::show() {
 
   integer -l sessions_count windows_count
   local -A session_registry
-  while IFS=$'\t' read session_name window_name dir; do
+  while IFS=$__tsm_tmux_delimiter read session_name window_name dir; do
     if (( ${+session_registry[$session_name]} )); then
       session_registry[$session_name]=$((session_registry[$session_name] + 1))
     else
