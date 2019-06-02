@@ -31,10 +31,16 @@ esac
 
 case "$line[1]" in
   show|remove|rename|copy|duplicate|restore|resume)
+    local sessions_dir
     local -a session_files
-    session_files=("${TSM_SESSIONS_DIR}"/*.txt(.NOmf:gu+r::t:r))
+    sessions_dir="${TSM_SESSIONS_DIR:-${TSM_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/tsm}/sessions}"
+    session_files=("${sessions_dir}"/*.txt(.NOmf:gu+r::t:r))
 
-    _values 'Sessions' $session_files && ret=0
+    if (( ${#session_files} == 0 )); then
+      _message -e 'no sessions found' && ret=1
+    else
+      _values 'Sessions' $session_files && ret=0
+    fi
     ;;
   help)
     _describe -t commands 'tsm commands' cmds && ret=0
