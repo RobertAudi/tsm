@@ -75,7 +75,6 @@ Commands
 - [x] `rename`
 - [ ] `migrate`
 - [ ] `env`
-- [ ] `doctor`
 
 TODO
 ----
