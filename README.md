@@ -58,7 +58,7 @@ Requirements
 Usage
 -----
 
-```shell
+```console
 $ tsm <command> [args...]
 ```
 
