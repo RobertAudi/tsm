@@ -47,7 +47,7 @@ $ tsm <command> [args...]
 Configuration
 -------------
 
-- `$TSM_HOME` (**default:** `$XDG_DATA_HOME/tmux-sessions`)
+- `$TSM_HOME` (**default:** `$XDG_DATA_HOME/tsm`)
 - `$TSM_SESSIONS_DIR` (**default:** `$TSM_HOME/sessions`)
 - `$TSM_BACKUPS_DIR` (**default:** `$TSM_HOME/backups`)
 - `$TSM_DEFAULT_SESSION_FILE` (**default:** `$TSM_HOME/default-session.txt`)
