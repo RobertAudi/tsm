@@ -39,7 +39,7 @@ case "$line[1]" in
     if (( ${#session_files} == 0 )); then
       _message -e 'no sessions found' && ret=1
     else
-      _values 'Sessions' $session_files && ret=0
+      _values 'Sessions' ${session_files//:/\\:} && ret=0
     fi
     ;;
   help)
